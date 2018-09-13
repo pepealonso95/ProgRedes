@@ -10,6 +10,8 @@ namespace Domain
     public class Survivor : Character
     {
 
+        public Survivor() : base() { }
+
         public Survivor(Player survivorPlayer)
         {
             player = survivorPlayer;

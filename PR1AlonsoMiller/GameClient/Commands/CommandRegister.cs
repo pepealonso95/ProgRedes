@@ -9,7 +9,6 @@ namespace GameClient.Commands
 {
     public class CommandRegister:Command
     {
-
         public CommandRegister() : base(RequestCmd.REGISTER)
         {
         }
@@ -19,23 +18,25 @@ namespace GameClient.Commands
             Console.WriteLine("Enter Player Nickname:");
             string nickname = Console.ReadLine();
             Console.WriteLine("Enter Player Picture Path:");
-            string picture = GetPictureFromPath();
+            string picture = GetPictureFromPath(nickname + CmdReqList.NAMEPICSEPARATOR);
             string data = nickname + CmdReqList.NAMEPICSEPARATOR + picture;
             int length = System.Text.Encoding.UTF8.GetByteCount(data);
             string strLength = length.ToString().PadLeft(4, '0');
             return header+strLength + data;
         }
 
-        private string GetPictureFromPath()
+        private string GetPictureFromPath(string prevData)
         {
             string strImage = "";
             while (strImage.Equals(""))
             {
                 string imgPath = Console.ReadLine();
+                int imgByteLength = 0;
                 if (File.Exists(imgPath))
                 {
                     if (imgPath.EndsWith(".png") || imgPath.EndsWith(".jpg")) { 
                         byte[] file = File.ReadAllBytes(imgPath);
+                        imgByteLength = file.Length;
                         strImage = System.Text.Encoding.Default.GetString(file);
                     }
                     else
@@ -47,7 +48,8 @@ namespace GameClient.Commands
                 {
                     Console.WriteLine("Inexistent or Invalid File Path, please re-enter:");
                 }
-                if (strImage.Length > 9999)
+                int prevDataLength = System.Text.ASCIIEncoding.Unicode.GetByteCount(prevData);
+                if (prevDataLength+imgByteLength > CmdReqList.MAX_VAR_SIZE)
                 {
                     Console.WriteLine("File too large, please select another file:");
                     strImage = "";

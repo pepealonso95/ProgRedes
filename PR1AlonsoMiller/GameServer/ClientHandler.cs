@@ -26,15 +26,20 @@ namespace GameServer
                 byte[] buffer = new byte[ResponseCmd.FIXED_LENGTH];
                 RecieveStream(buffer);
                 string strBuffer = Encoding.UTF8.GetString(buffer);
+                Console.WriteLine(strBuffer);
                 string header = strBuffer.Substring(0, 3);
                 if (header.Equals("REQ"))
                 {
                     HandleRequest(strBuffer);
                 }
             }
+            if (player != null)
+            {
+                player.LogOut();
+                PrintLoggedInPlayersList();
+            }
         }
 
-       
 
         private void HandleRequest(string buffer)
         {
@@ -53,22 +58,29 @@ namespace GameServer
                 RegisterPlayer(buffer);
             }else if(strCmd == CmdReqList.LOGIN)
             {
-                int length = Int32.Parse(buffer.Substring(5, 4));
-                byte[] data = new byte[length];
-                RecieveStream(data);
-                string strData = Encoding.UTF8.GetString(data);
-                Player player = PlayerList.GetInstance().Find(p=> p.Nickname == strData);
-                if (player != null)
-                {
-                    this.player = player;
-                    ReturnOk();
-                }
-                else
-                {
-                    ReturnError(ResponseCmd.LOGIN_INVALID);
-                }
+                LoginPlayer(buffer);
             }
 
+        }
+
+        private void LoginPlayer(string buffer)
+        {
+            int length = Int32.Parse(buffer.Substring(5, 4));
+            byte[] data = new byte[length];
+            RecieveStream(data);
+            string strData = Encoding.UTF8.GetString(data);
+            Player player = PlayerList.GetInstance().Find(p => p.Nickname == strData);
+            if (player != null && !player.IsLogged())
+            {
+                player.LogIn();
+                this.player = player;
+                PrintLoggedInPlayersList();
+                ReturnOk();
+            }
+            else
+            {
+                ReturnError(ResponseCmd.LOGIN_INVALID);
+            }
         }
 
         private void ReturnExit()
@@ -87,7 +99,28 @@ namespace GameServer
             string[] splitData = strData.Split(CmdReqList.NAMEPICSEPARATOR);
             Player player = new Player(splitData[0], Encoding.UTF8.GetBytes(splitData[1]));
             PlayerList.GetInstance().Add(player);
+            PrintRegisteredPlayersList();
             ReturnOk();
+        }
+
+        private void PrintRegisteredPlayersList()
+        {
+            List<Player> players = PlayerList.GetInstance();
+            Console.WriteLine("Registered Players: ");
+            foreach (Player player in players)
+            {
+                Console.WriteLine(player.ToString());
+            }
+        }
+
+        private void PrintLoggedInPlayersList()
+        {
+            List<Player> players = PlayerList.GetLoggedPlayers();
+            Console.WriteLine("Logged In Players: ");
+            foreach (Player player in players)
+            {
+                Console.WriteLine(player.ToString());
+            }
         }
 
         private void ReturnOk()

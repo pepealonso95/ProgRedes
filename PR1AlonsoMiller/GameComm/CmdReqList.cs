@@ -6,11 +6,12 @@ namespace GameComm
 {
     public static class CmdReqList
     {
+        public const int MAX_VAR_SIZE = 9999;
         public const string NAMEPICSEPARATOR = "</%#?>";
 
         public const string NO_VAR = "0000";
 
-        public const string SERVERIP = "192.168.1.46";
+        public const string SERVERIP = "192.168.1.21";
 
         public const string HEADER = "REQ";
 

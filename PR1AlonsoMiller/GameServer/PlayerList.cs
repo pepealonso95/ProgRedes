@@ -20,5 +20,18 @@ namespace GameServer
                 players = new List<Player>();
             return players;
         }
+
+        public static List<Player> GetLoggedPlayers()
+        {
+            List<Player> loggedPlayers = new List<Player>();
+            foreach (Player player in players)
+            {
+                if (player.IsLogged())
+                {
+                    loggedPlayers.Add(player);
+                }
+            }
+            return loggedPlayers;
+        }
     }
 }

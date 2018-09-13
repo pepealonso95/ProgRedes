@@ -16,6 +16,7 @@ namespace GameClient
 
         public void Start(TcpClient client)
         {
+            //tirar otro while para que el programa no se cierre si es necesario
             interpreter = new Interpreter();
             socket = client;
             isConnected = true;

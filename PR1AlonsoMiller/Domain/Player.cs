@@ -12,20 +12,52 @@ namespace Domain
         [DataMember]
         public byte[] Image { get; }
 
+        private bool loggedIn;
+
         public Player(string nickname)
         {
             this.Nickname = nickname;
+            this.loggedIn = false;
         }
 
         public Player(string nickname, byte[] image)
         {
             this.Nickname = nickname;
             this.Image = image;
+            this.loggedIn = false;
         }
 
+        public void LogIn()
+        {
+            this.loggedIn = true;
+        }
+
+        public void LogOut()
+        {
+            this.loggedIn = false;
+        }
+
+
+        public bool IsLogged()
+        {
+            return this.loggedIn;
+        }
         public override bool Equals(object obj)
         {
-            return this.Nickname.Equals(((Player)obj).Nickname);
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                return this.Nickname.Equals(((Player)obj).Nickname);
+            }
         }
+
+        public override string ToString()
+        {
+            return this.Nickname;
+        }
+
     }
 }
