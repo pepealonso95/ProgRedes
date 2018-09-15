@@ -2,8 +2,18 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GameClient.Commands
+namespace Domain
 {
+
+    public enum ServerCmd
+    {
+        SHOWREGISTERED,
+        SHOWLOGGED,
+        STARTMATCH,
+        EXIT,
+        UNKNOWN
+
+    }
     public enum RequestCmd
     {
         REGISTER,
@@ -14,11 +24,16 @@ namespace GameClient.Commands
     }
     public abstract class Command
     {
-        public readonly RequestCmd Request;
+        protected readonly RequestCmd Request;
+        protected readonly ServerCmd Server;
 
         public Command(RequestCmd request)
         {
             Request = request;
+        }
+        public Command(ServerCmd server)
+        {
+            Server = server;
         }
 
         public abstract string Run();

@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 using GameClient.Commands;
+using Domain;
 using GameComm;
 
 namespace GameClient
 {
-    public class Interpreter
+    public class ClientInterpreter
     {
         public Command InterpretRequest(string command)
         {

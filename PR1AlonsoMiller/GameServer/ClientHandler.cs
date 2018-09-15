@@ -23,7 +23,7 @@ namespace GameServer
         {
             while (isConnected)
             {
-                byte[] buffer = new byte[ResponseCmd.FIXED_LENGTH];
+                byte[] buffer = new byte[CmdResList.FIXED_LENGTH];
                 RecieveStream(buffer);
                 string strBuffer = Encoding.UTF8.GetString(buffer);
                 Console.WriteLine(strBuffer);
@@ -35,8 +35,7 @@ namespace GameServer
             }
             if (player != null)
             {
-                player.LogOut();
-                PrintLoggedInPlayersList();
+                PlayerList.PlayerLogout(player);
             }
         }
 
@@ -69,25 +68,23 @@ namespace GameServer
             byte[] data = new byte[length];
             RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
-            Player player = PlayerList.GetInstance().Find(p => p.Nickname == strData);
-            if (player != null && !player.IsLogged())
+            Player player = PlayerList.PlayerLogin(strData);
+            if (player != null)
             {
-                player.LogIn();
                 this.player = player;
-                PrintLoggedInPlayersList();
                 ReturnOk();
             }
             else
             {
-                ReturnError(ResponseCmd.LOGIN_INVALID);
+                ReturnError(CmdResList.LOGIN_INVALID);
             }
         }
 
         private void ReturnExit()
         {
-            string response = ResponseCmd.HEADER + ResponseCmd.EXIT + ResponseCmd.NO_VAR;
+            string response = CmdResList.HEADER + CmdResList.EXIT + CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
-            client.GetStream().Write(send, 0, ResponseCmd.FIXED_LENGTH);
+            client.GetStream().Write(send, 0, CmdResList.FIXED_LENGTH);
         }
 
         private void RegisterPlayer(string buffer)
@@ -98,43 +95,29 @@ namespace GameServer
             string strData = Encoding.UTF8.GetString(data);
             string[] splitData = strData.Split(CmdReqList.NAMEPICSEPARATOR);
             Player player = new Player(splitData[0], Encoding.UTF8.GetBytes(splitData[1]));
-            PlayerList.GetInstance().Add(player);
-            PrintRegisteredPlayersList();
-            ReturnOk();
-        }
-
-        private void PrintRegisteredPlayersList()
-        {
-            List<Player> players = PlayerList.GetInstance();
-            Console.WriteLine("Registered Players: ");
-            foreach (Player player in players)
+            if (PlayerList.PlayerRegister(player))
             {
-                Console.WriteLine(player.ToString());
+                ReturnOk();
+            }
+            else
+            {
+                ReturnError(CmdResList.REGISTER_INVALID);
             }
         }
-
-        private void PrintLoggedInPlayersList()
-        {
-            List<Player> players = PlayerList.GetLoggedPlayers();
-            Console.WriteLine("Logged In Players: ");
-            foreach (Player player in players)
-            {
-                Console.WriteLine(player.ToString());
-            }
-        }
+        
 
         private void ReturnOk()
         {
-            string response = ResponseCmd.HEADER+ResponseCmd.OK+ResponseCmd.NO_VAR;
+            string response = CmdResList.HEADER+CmdResList.OK+CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
-            client.GetStream().Write(send, 0, ResponseCmd.FIXED_LENGTH);
+            client.GetStream().Write(send, 0, CmdResList.FIXED_LENGTH);
         }
         
         private void ReturnError(string error)
         {
-            string response = ResponseCmd.HEADER + error + ResponseCmd.NO_VAR;
+            string response = CmdResList.HEADER + error + CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
-            client.GetStream().Write(send, 0, ResponseCmd.FIXED_LENGTH);
+            client.GetStream().Write(send, 0, CmdResList.FIXED_LENGTH);
         }
 
         private void RecieveStream(byte[] buffer)
@@ -145,7 +128,7 @@ namespace GameServer
                 var pos = client.GetStream().Read(buffer, 0, buffer.Length);
                 if (pos == 0)
                 {
-                    //hay que hacer close?
+                    client.Close();
                     throw new SocketException();
                 }
                 recieved += pos;

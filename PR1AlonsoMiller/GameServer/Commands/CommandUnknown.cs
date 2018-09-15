@@ -3,12 +3,12 @@ using Domain;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GameClient.Commands
+namespace GameServer.Commands
 {
     public class CommandUnknown:Command
     {
 
-        public CommandUnknown() : base(RequestCmd.UNKNOWN)
+        public CommandUnknown() : base(ServerCmd.UNKNOWN)
         {
         }
         public override string Run()

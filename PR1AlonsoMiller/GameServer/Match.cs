@@ -9,6 +9,7 @@ namespace GameServer
 {
     public class Match
     {
+        public const int MAX_ACTIVE_PLAYERS = 32;
         private string result = "No result";
         private static Match instance;
         private bool finished = true;
@@ -42,18 +43,16 @@ namespace GameServer
             DeadPlayers = new List<Player>();
         }
 
-        private void StartMatch()
+        public static void StartMatch()
         {
-            Thread tTimer = new Thread(MatchTimer);
-            tTimer.Start();
-        }
-
-        private void MatchTimer(object obj)
-        {
+            instance.ResetMatch();
+            ServerMain.BroadcastMessage("MATCH STARTS IN 10 SECONDS");
+            Thread.Sleep(10000);
+            ServerMain.BroadcastMessage("MATCH STARTED");
+            instance.finished = false;
             Thread.Sleep(180000);
-            finished = true;
-            Results();
-            ResetMatch();
+            instance.finished = true;
+            instance.Results();
         }
 
         private void Results()
@@ -73,6 +72,7 @@ namespace GameServer
             {
                 result = "NOBODY WINS";
             }
+            ServerMain.BroadcastMessage(result);
         }
 
         private void FindAllInTerrain(bool survivorsAlive, List<Player> monsters)
