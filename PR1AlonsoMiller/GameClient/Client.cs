@@ -16,91 +16,110 @@ namespace GameClient
         private TcpClient socket;
         public ClientInterpreter interpreter;
         private NetworkStream stream;
+        private static readonly object useLock = new object();
         public void Start(TcpClient client)
         {
+            PrintCommands();
             interpreter = new ClientInterpreter();
             socket = client;
             isConnected = true;
             stream = socket.GetStream();
-            Thread rT = new Thread(HandleResponse);
-            rT.Start();
-            while (isConnected)
-            {
-                HandleRequest();
-            }
+            Thread resT = new Thread(HandleResponse);
+            resT.Start();
+            Thread reqT = new Thread(HandleRequest);
+            reqT.Start();
         }
-   
+
+        private void PrintCommands()
+        {
+            Console.WriteLine("Available Commands:");
+            Console.WriteLine(TextCommands.REGISTER);
+            Console.WriteLine(TextCommands.LOGIN);
+            Console.WriteLine(TextCommands.EXIT);
+            Console.WriteLine("");
+        }
+
         private void HandleRequest()
         {
-            if (stream.CanWrite)
+            try { 
+            while (stream.CanWrite&& isConnected)
             {
                 string command = "";
-                while (command == "" || command == "Error")
+                while ((command == "" || command == "Error")&&isConnected)
                 {
                     command = Request();
                 }
-                if (command == "Exit")
+                if (command == "Exit"||!isConnected)
                 {
-                    stream.Close();
-                    isConnected = false;
+                    throw new DisconnectedException("Goodbye");
                 }
-                else{
+                else 
+                {
                     byte[] buffer = Encoding.UTF8.GetBytes(command);
                     stream.Write(buffer, 0, buffer.Length);
+                }
+                }
+            }
+            catch (DisconnectedException e)
+            {
+                if (isConnected)
+                {
+                    isConnected = false;
+                    Console.WriteLine(e.Message + ", press enter to close");
+                    Console.ReadLine();
+                    stream.Close();
+                    socket.Close();
                 }
             }
         }
 
         private void HandleResponse()
         {
-            
-            while (stream.CanRead&&isConnected)
+            try
             {
-                byte[] buffer = new byte[CmdResList.FIXED_LENGTH];
-                RecieveStream(buffer);
-                string strBuffer = Encoding.UTF8.GetString(buffer);
-                string header = strBuffer.Substring(0, 3);
-                if (header.Equals("RES"))
+                while (stream.CanRead && isConnected)
                 {
-                    if (strBuffer.Substring(3, 2) == "98")
+                    byte[] buffer = new byte[CmdResList.FIXED_LENGTH];
+                    RecieveStream(buffer);
+                    string strBuffer = Encoding.UTF8.GetString(buffer);
+                    string header = strBuffer.Substring(0, 3);
+                    if (header.Equals("RES"))
                     {
-                        PrintServerResponse(strBuffer);
-                        HandleResponse();
-                        return;
+                        if (strBuffer.Substring(3, 2) == CmdResList.BROADCAST) { }
+                        else if (strBuffer.Substring(3, 2) == CmdResList.OK)
+                        {
+                            Console.WriteLine("Operation Succesful");
+                        }
+                        else if (strBuffer.Substring(3, 2) == CmdResList.REGISTER_INVALID)
+                        {
+                            Console.WriteLine("Register Invalid, Nickname already exists");
+                        }
+                        else if (strBuffer.Substring(3, 2) == CmdResList.LOGIN_INVALID)
+                        {
+                            Console.WriteLine("Login Invalid, Nickname does not match an Registered Player");
+                        }
+
+                        else if (strBuffer.Substring(3, 2) == CmdResList.EXIT)
+                        {
+                            throw new DisconnectedException("Disconnected from server");
+                        }
+                        else
+                        {
+                            throw new DisconnectedException("Unknown request from server");
+                        }
                     }
-                    else if (strBuffer.Substring(3, 2) == "00")
-                    {
-                        Console.WriteLine("Operation Succesful");
-                        return;
-                    }
-                    else if (strBuffer.Substring(3, 2) == "01")
-                    {
-                        Console.WriteLine("Register Invalid, Nickname already exists");
-                    }
-                    else if (strBuffer.Substring(3, 2) == "02")
-                    {
-                        Console.WriteLine("Login Invalid, Nickname does not match an Registered Player");
-                        return;
-                    }
-                    
-                    else if (strBuffer.Substring(3, 2) == "99")
-                    {
-                        Console.WriteLine("Disconnected from server, press enter to close");
-                        Console.ReadLine();
-                        isConnected = false;
-                        stream.Close();
-                        return;
-                    }
-                }
-                if (isConnected)
-                {
+                if(isConnected)
                     PrintServerResponse(strBuffer);
                 }
-                else
+            }
+            catch (DisconnectedException e)
+            {
+                if (isConnected)
                 {
+                    isConnected = false;
+                    Console.WriteLine(e.Message + ", press enter to close");
                     stream.Close();
                     socket.Close();
-                    return;
                 }
             }
         }
@@ -120,14 +139,18 @@ namespace GameClient
             Console.WriteLine("Enter Command:");
             string enteredValue = Console.ReadLine();
             Command command = interpreter.InterpretRequest(enteredValue);
-            return command.Run();
+            if (isConnected)
+            {
+                return command.Run();
+            }
+            return "Exit";
         }
 
 
         private void RecieveStream(byte[] buffer)
         {
             var recieved = 0;
-            while (recieved < buffer.Length && isConnected)
+            while (recieved < buffer.Length&&isConnected)
             {
                 try
                 {
@@ -139,14 +162,9 @@ namespace GameClient
                     }
                     recieved += pos;
                 }
-                catch (SocketException se)
+                catch (System.IO.IOException se)
                 {
-                    if (se.ErrorCode == 10004)
-                    {
-                        Console.WriteLine("Disconnected from server, exit to close");
-                        socket.Close();
-                        isConnected = false;
-                    }
+                    throw new DisconnectedException("Lost Connection");
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿using GameComm;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -25,7 +26,6 @@ namespace GameServer
             server.Start(Match.MAX_ACTIVE_PLAYERS);
             isConnected = true;
             Console.WriteLine("Listening");
-            int count = 0;
             Thread sClient = new Thread(HandleServer);
             sClient.Start();
             while (isConnected)
@@ -33,10 +33,10 @@ namespace GameServer
                 try
                 {
                     TcpClient client = server.AcceptTcpClient();
-                    Console.WriteLine("ClientConnected");
                     clients.Add(client);
-                    if (count > MAX_PLAYERS_CONNECTED)
+                    if (clients.Count > MAX_PLAYERS_CONNECTED)
                     {
+                        client.GetStream().Close();
                         client.Close();
                         clients.Remove(client);
                     }
@@ -58,40 +58,55 @@ namespace GameServer
         {
             ClientHandler handler = new ClientHandler(client);
             handler.Start();
+            clients.Remove(client);
         }
 
         public static void HandleServer()
         {
             ServerController controller = new ServerController();
             controller.Start();
-            isConnected = false;
             server.Stop();
             CloseAllConnections();
+            isConnected = false;
         }
 
         private static void CloseAllConnections()
         {
             Monitor.Enter(useLock);
-            foreach (TcpClient client in clients)
+            while (clients.Count>0)
             {
+                TcpClient client = clients.First<TcpClient>();
+                ExitConnection(client);
                 client.Close();
+                clients.Remove(client);
             }
             Monitor.Exit(useLock);
         }
 
+        private static void ExitConnection(TcpClient client)
+        {
+            string header = CmdResList.HEADER + CmdResList.EXIT+CmdResList.NO_VAR;
+            byte[] buffer = Encoding.UTF8.GetBytes(header);
+            client.GetStream().Write(buffer, 0, buffer.Length);
+        }
+
         public static void BroadcastMessage(string message)
         {
+            Monitor.Enter(useLock);
             string header = CmdResList.HEADER + CmdResList.BROADCAST;
             int length = System.Text.Encoding.UTF8.GetByteCount(message);
             string strLength = length.ToString().PadLeft(4, '0');
             string broadcast = header + strLength + message;
             byte[] buffer = Encoding.UTF8.GetBytes(broadcast);
-            Monitor.Enter(useLock);
             foreach(TcpClient client in clients)
             {
+                while (client.GetStream().DataAvailable)
+                {
+                }
                 client.GetStream().Write(buffer, 0, buffer.Length);
             }
             Monitor.Exit(useLock);
         }
+        
     }
 }

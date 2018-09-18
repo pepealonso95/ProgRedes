@@ -9,10 +9,11 @@ namespace GameClient
 {
     public class ClientMain
     {
+        static int port = 2001;
         static void Main(string[] args)
         {
-            IPEndPoint ipend = new IPEndPoint(IPAddress.Parse(CmdReqList.SERVERIP), 2001);
-            TcpClient client = new TcpClient(ipend);
+            
+            TcpClient client = new TcpClient();
             Console.WriteLine("Connecting");
             while (!client.Connected)
             {

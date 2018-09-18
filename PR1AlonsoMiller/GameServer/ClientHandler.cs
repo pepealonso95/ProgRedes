@@ -23,17 +23,26 @@ namespace GameServer
 
         public void Start()
         {
-            while (isConnected)
+            try
             {
-                byte[] buffer = new byte[CmdResList.FIXED_LENGTH];
-                RecieveStream(buffer);
-                string strBuffer = Encoding.UTF8.GetString(buffer);
-                Console.WriteLine(strBuffer);
-                string header = strBuffer.Substring(0, 3);
-                if (header.Equals("REQ"))
+                while (isConnected)
                 {
-                    HandleRequest(strBuffer);
+                    byte[] buffer = new byte[CmdResList.FIXED_LENGTH];
+                    RecieveStream(buffer);
+                    string strBuffer = Encoding.UTF8.GetString(buffer);
+                    Console.WriteLine(strBuffer);
+                    string header = strBuffer.Substring(0, 3);
+                    if (header.Equals("REQ"))
+                    {
+                        HandleRequest(strBuffer);
+                    }
                 }
+            }catch(DisconnectedException e)
+            {
+                stream.Close();
+                client.Close();
+                isConnected = false;
+                ServerMain.count--;
             }
             if (player != null)
             {
@@ -47,11 +56,7 @@ namespace GameServer
             string strCmd = buffer.Substring(3, 2);
             if(strCmd == CmdReqList.EXIT)
             {
-                stream.Close();
-                client.Close();
-                isConnected = false;
-                ServerMain.count--;
-                return;
+                throw new DisconnectedException("Close");
             }
             else if (strCmd == CmdReqList.REGISTER)
             {
@@ -138,10 +143,8 @@ namespace GameServer
                 }
                 catch (System.IO.IOException se)
                 {
-                    
-                        isConnected = false;
-                        client.Close();
-                    
+                    throw new DisconnectedException("Lost Connection");
+
                 }
             }
         }

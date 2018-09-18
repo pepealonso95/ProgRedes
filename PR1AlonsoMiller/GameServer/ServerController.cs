@@ -2,6 +2,7 @@
 using Domain;
 using System.Collections.Generic;
 using System.Text;
+using GameComm;
 
 namespace GameServer
 {
@@ -12,12 +13,22 @@ namespace GameServer
 
         public void Start()
         {
+            PrintCommands();
             interpreter = new ServerInterpreter();
             Disconnect = false;
             while (!Disconnect)
             {
                 HandleRequest();
             }
+        }
+        private void PrintCommands()
+        {
+            Console.WriteLine("Available Commands:");
+            Console.WriteLine(TextCommands.SHOWREGISTERED);
+            Console.WriteLine(TextCommands.SHOWLOGGED);
+            Console.WriteLine(TextCommands.STARTMATCH);
+            Console.WriteLine(TextCommands.EXIT);
+            Console.WriteLine("");
         }
 
         private void HandleRequest()
