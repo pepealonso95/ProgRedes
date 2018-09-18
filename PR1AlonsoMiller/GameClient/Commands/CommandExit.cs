@@ -16,9 +16,8 @@ namespace GameClient.Commands
         }
         public override string Run()
         {
-            string header = CmdReqList.HEADER + CmdReqList.EXIT;
-            string strLength = CmdReqList.NO_VAR;
-            return header+strLength;
+            
+            return "Exit";
         }
         
 

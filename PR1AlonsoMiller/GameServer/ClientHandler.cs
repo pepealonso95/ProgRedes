@@ -13,10 +13,12 @@ namespace GameServer
         private Player player;
         public bool isConnected;
         private TcpClient client;
+        private NetworkStream stream;
         public ClientHandler(TcpClient clientToHandle)
         {
             client = clientToHandle;
             isConnected = true;
+            stream = client.GetStream();
         }
 
         public void Start()
@@ -45,8 +47,7 @@ namespace GameServer
             string strCmd = buffer.Substring(3, 2);
             if(strCmd == CmdReqList.EXIT)
             {
-                ReturnExit();
-                client.GetStream().Close();
+                stream.Close();
                 client.Close();
                 isConnected = false;
                 ServerMain.count--;
@@ -84,14 +85,14 @@ namespace GameServer
         {
             string response = CmdResList.HEADER + CmdResList.EXIT + CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
-            client.GetStream().Write(send, 0, CmdResList.FIXED_LENGTH);
+            stream.Write(send, 0, CmdResList.FIXED_LENGTH);
         }
 
         private void RegisterPlayer(string buffer)
         {
             int length = Int32.Parse(buffer.Substring(5, 4));
             byte[] data = new byte[length];
-            client.GetStream().Read(data, 0, length);
+            stream.Read(data, 0, length);
             string strData = Encoding.UTF8.GetString(data);
             string[] splitData = strData.Split(CmdReqList.NAMEPICSEPARATOR);
             Player player = new Player(splitData[0], Encoding.UTF8.GetBytes(splitData[1]));
@@ -110,28 +111,38 @@ namespace GameServer
         {
             string response = CmdResList.HEADER+CmdResList.OK+CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
-            client.GetStream().Write(send, 0, CmdResList.FIXED_LENGTH);
+            stream.Write(send, 0, CmdResList.FIXED_LENGTH);
         }
         
         private void ReturnError(string error)
         {
             string response = CmdResList.HEADER + error + CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
-            client.GetStream().Write(send, 0, CmdResList.FIXED_LENGTH);
+            stream.Write(send, 0, CmdResList.FIXED_LENGTH);
         }
 
         private void RecieveStream(byte[] buffer)
         {
             var recieved = 0;
-            while (recieved < buffer.Length)
+            while (recieved < buffer.Length && isConnected)
             {
-                var pos = client.GetStream().Read(buffer, 0, buffer.Length);
-                if (pos == 0)
+                try
                 {
-                    client.Close();
-                    throw new SocketException();
+                    var pos = stream.Read(buffer, 0, buffer.Length);
+                    if (pos == 0)
+                    {
+                        client.Close();
+                        isConnected = false;
+                    }
+                    recieved += pos;
                 }
-                recieved += pos;
+                catch (System.IO.IOException se)
+                {
+                    
+                        isConnected = false;
+                        client.Close();
+                    
+                }
             }
         }
     }

@@ -15,10 +15,11 @@ namespace GameServer
         public static ICollection<TcpClient> clients;
         public static int count;
         public const int MAX_PLAYERS_CONNECTED = 100;
+        private static TcpListener server;
         public static void Main(string[] args)
         {
             IPEndPoint ipthis = new IPEndPoint(IPAddress.Parse(CmdReqList.SERVERIP), 2000);
-            TcpListener server = new TcpListener(ipthis);
+            server = new TcpListener(ipthis);
             Match.Instance();
             clients = new List<TcpClient>();
             server.Start(Match.MAX_ACTIVE_PLAYERS);
@@ -29,16 +30,27 @@ namespace GameServer
             sClient.Start();
             while (isConnected)
             {
-                TcpClient client = server.AcceptTcpClient();
-                Console.WriteLine("ClientConnected");
-                clients.Add(client);
-                if (count > MAX_PLAYERS_CONNECTED)
+                try
                 {
-                    client.Close();
-                    clients.Remove(client);
+                    TcpClient client = server.AcceptTcpClient();
+                    Console.WriteLine("ClientConnected");
+                    clients.Add(client);
+                    if (count > MAX_PLAYERS_CONNECTED)
+                    {
+                        client.Close();
+                        clients.Remove(client);
+                    }
+                    Thread tClient = new Thread(() => HandleClient(client));
+                    tClient.Start();
+                } catch (SocketException se)
+                {
+                    if (se.ErrorCode == 10004)
+                    {
+                        isConnected = false;
+                        server.Stop();
+                        CloseAllConnections();
+                    }
                 }
-                Thread tClient = new Thread(() => HandleClient(client));
-                tClient.Start();
             }
         }
 
@@ -53,6 +65,7 @@ namespace GameServer
             ServerController controller = new ServerController();
             controller.Start();
             isConnected = false;
+            server.Stop();
             CloseAllConnections();
         }
 

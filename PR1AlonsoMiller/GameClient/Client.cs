@@ -15,38 +15,46 @@ namespace GameClient
         public bool isConnected;
         private TcpClient socket;
         public ClientInterpreter interpreter;
-
+        private NetworkStream stream;
         public void Start(TcpClient client)
         {
             interpreter = new ClientInterpreter();
             socket = client;
             isConnected = true;
+            stream = socket.GetStream();
+            Thread rT = new Thread(HandleResponse);
+            rT.Start();
             while (isConnected)
             {
                 HandleRequest();
-                HandleResponse();
             }
         }
    
         private void HandleRequest()
         {
-            if (socket.GetStream().CanWrite)
+            if (stream.CanWrite)
             {
                 string command = "";
                 while (command == "" || command == "Error")
                 {
                     command = Request();
                 }
-                byte[] buffer = Encoding.UTF8.GetBytes(command);
-                socket.GetStream().Write(buffer, 0, buffer.Length);
-
+                if (command == "Exit")
+                {
+                    stream.Close();
+                    isConnected = false;
+                }
+                else{
+                    byte[] buffer = Encoding.UTF8.GetBytes(command);
+                    stream.Write(buffer, 0, buffer.Length);
+                }
             }
         }
 
         private void HandleResponse()
         {
             
-            if (socket.GetStream().CanRead)
+            while (stream.CanRead&&isConnected)
             {
                 byte[] buffer = new byte[CmdResList.FIXED_LENGTH];
                 RecieveStream(buffer);
@@ -77,18 +85,23 @@ namespace GameClient
                     
                     else if (strBuffer.Substring(3, 2) == "99")
                     {
-                        Console.WriteLine("Disconnected from server");
+                        Console.WriteLine("Disconnected from server, press enter to close");
+                        Console.ReadLine();
                         isConnected = false;
+                        stream.Close();
                         return;
                     }
                 }
-                PrintServerResponse(strBuffer);
-            }
-            if (!isConnected)
-            {
-                socket.GetStream().Close();
-                socket.Close();
-                return;
+                if (isConnected)
+                {
+                    PrintServerResponse(strBuffer);
+                }
+                else
+                {
+                    stream.Close();
+                    socket.Close();
+                    return;
+                }
             }
         }
 
@@ -114,14 +127,27 @@ namespace GameClient
         private void RecieveStream(byte[] buffer)
         {
             var recieved = 0;
-            while (recieved < buffer.Length)
+            while (recieved < buffer.Length && isConnected)
             {
-                var pos = socket.GetStream().Read(buffer, 0, buffer.Length);
-                if (pos == 0)
+                try
                 {
-                    throw new SocketException();
+                    var pos = stream.Read(buffer, 0, buffer.Length);
+                    if (pos == 0)
+                    {
+                        socket.Close();
+                        isConnected = false;
+                    }
+                    recieved += pos;
                 }
-                recieved += pos;
+                catch (SocketException se)
+                {
+                    if (se.ErrorCode == 10004)
+                    {
+                        Console.WriteLine("Disconnected from server, exit to close");
+                        socket.Close();
+                        isConnected = false;
+                    }
+                }
             }
         }
 
