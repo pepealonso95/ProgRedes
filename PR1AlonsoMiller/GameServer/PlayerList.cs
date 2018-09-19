@@ -48,7 +48,7 @@ namespace GameServer
         public static Player PlayerLogin(string nickname)
         {
             Monitor.Enter(useLock);
-            Player logged = GetInstance().Find(p => p.Nickname == nickname);
+            Player logged = GetInstance().Find(p => p.Nickname == nickname&&!p.IsLogged());
             if (logged!=null)
             {
                 logged.LogIn();

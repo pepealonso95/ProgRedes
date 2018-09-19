@@ -33,14 +33,18 @@ namespace GameServer
                 try
                 {
                     TcpClient client = server.AcceptTcpClient();
+                    Monitor.Enter(useLock);
                     clients.Add(client);
                     if (clients.Count > MAX_PLAYERS_CONNECTED)
                     {
-                        //send message serverfull
+                        string response = CmdResList.HEADER + CmdResList.SERVERFULL + CmdResList.NO_VAR;
+                        byte[] send = Encoding.UTF8.GetBytes(response);
+                        client.GetStream().Write(send, 0, CmdResList.FIXED_LENGTH);
                         client.GetStream().Close();
                         client.Close();
                         clients.Remove(client);
                     }
+                    Monitor.Exit(useLock);
                     Thread tClient = new Thread(() => HandleClient(client));
                     tClient.Start();
                 } catch (SocketException se)
@@ -59,7 +63,9 @@ namespace GameServer
         {
             ClientHandler handler = new ClientHandler(client);
             handler.Start();
+            Monitor.Enter(useLock);
             clients.Remove(client);
+            Monitor.Exit(useLock);
         }
 
         public static void HandleServer()
@@ -93,13 +99,13 @@ namespace GameServer
 
         public static void BroadcastMessage(string message)
         {
-            Monitor.Enter(useLock);
             string header = CmdResList.HEADER + CmdResList.BROADCAST;
             int length = System.Text.Encoding.UTF8.GetByteCount(message);
             string strLength = length.ToString().PadLeft(4, '0');
             string broadcast = header + strLength + message;
             byte[] buffer = Encoding.UTF8.GetBytes(broadcast);
-            foreach(TcpClient client in clients)
+            Monitor.Enter(useLock);
+            foreach (TcpClient client in clients)
             {
                 while (client.GetStream().DataAvailable)
                 {

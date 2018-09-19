@@ -34,10 +34,19 @@ namespace GameClient
 
         private void PrintCommands()
         {
+            Console.WriteLine("");
             Console.WriteLine("Available Commands:");
             Console.WriteLine(TextCommands.REGISTER);
             Console.WriteLine(TextCommands.LOGIN);
+            Console.WriteLine(TextCommands.LOGOUT);
             Console.WriteLine(TextCommands.JOINMATCH);
+            Console.WriteLine(TextCommands.EXIT);
+            Console.WriteLine("");
+            Console.WriteLine("Available Commands after Joining match:");
+            Console.WriteLine(TextCommands.SELECTCHARACTER);
+            Console.WriteLine(TextCommands.MOVE);
+            Console.WriteLine(TextCommands.ATTACK);
+            Console.WriteLine(TextCommands.LOGOUT);
             Console.WriteLine(TextCommands.EXIT);
             Console.WriteLine("");
         }
@@ -50,19 +59,21 @@ namespace GameClient
                 string command = "";
                 while ((command == "" || command == "Error")&&isConnected)
                 {
-                    if(!expectingResult)
+                    if (command == "Error")
+                        PrintCommands();
+                    if (!expectingResult)
                         command = Request();
-                }
+                    }
                 if (command == "Exit"||!isConnected)
                 {
                     throw new DisconnectedException("Goodbye");
                 }
-                else 
-                {
+                else
+                    {
                     byte[] buffer = Encoding.UTF8.GetBytes(command);
                     stream.Write(buffer, 0, buffer.Length);
                     expectingResult = true;
-                }
+                    }
                 }
             }
             catch (DisconnectedException e)
@@ -93,8 +104,6 @@ namespace GameClient
                         InterpretResponse(strBuffer.Substring(3, 2));
                         if (isConnected)
                             PrintServerResponse(strBuffer);
-                        if (strBuffer.Substring(3, 2) != CmdResList.BROADCAST)
-                            expectingResult = false;
                     }
                 }
             }
@@ -133,6 +142,8 @@ namespace GameClient
                     Console.WriteLine(response);
                 }
             }
+            if (strBuffer.Substring(3, 2) != CmdResList.BROADCAST)
+                expectingResult = false;
         }
 
         public string Request()

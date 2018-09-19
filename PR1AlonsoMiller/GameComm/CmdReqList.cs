@@ -18,8 +18,10 @@ namespace GameComm
         public const string UNKNOWN = "00";
         public const string REGISTER = "01";
         public const string LOGIN = "02";
+        public const string LOGOUT = "03";
 
-        public const string JOINMATCH = "03";
+        public const string JOINMATCH = "04";
+        public const string SELECTCHARACTER = "05";
 
         public const string EXIT = "99";
     }

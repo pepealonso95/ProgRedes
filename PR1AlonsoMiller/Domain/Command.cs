@@ -18,13 +18,16 @@ namespace Domain
     {
         REGISTER,
         LOGIN,
+        LOGOUT,
         JOINMATCH,
+        SELECTCHARACTER,
         EXIT,
         UNKNOWN
 
     }
     public abstract class Command
     {
+        protected const int VAR_SIZE_LIMIT = 9999;
         protected readonly RequestCmd Request;
         protected readonly ServerCmd Server;
 
@@ -38,5 +41,18 @@ namespace Domain
         }
 
         public abstract string Run();
+
+        public string EnterValidLengthString()
+        {
+            string entered = Console.ReadLine();
+            int length = System.Text.ASCIIEncoding.Unicode.GetByteCount(entered);
+            while (length > VAR_SIZE_LIMIT)
+            {
+                Console.WriteLine("Entered value exceeds limits, please re-enter");
+                entered = Console.ReadLine();
+                length = System.Text.ASCIIEncoding.Unicode.GetByteCount(entered);
+            }
+            return entered;
+        }
     }
 }

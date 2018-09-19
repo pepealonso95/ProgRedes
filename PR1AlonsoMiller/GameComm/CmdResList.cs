@@ -21,6 +21,7 @@ namespace GameComm
 
         public const string UNKNOWN = "04";
         public const string NOTLOGGED = "05";
+        public const string ALREADY_LOGGED = "06";
 
 
         public const string MATCHFINISHED = "09";

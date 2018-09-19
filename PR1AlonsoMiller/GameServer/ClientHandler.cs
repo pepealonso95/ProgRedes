@@ -34,7 +34,6 @@ namespace GameServer
                     byte[] buffer = new byte[CmdResList.FIXED_LENGTH];
                     RecieveStream(buffer);
                     string strBuffer = Encoding.UTF8.GetString(buffer);
-                    Console.WriteLine(strBuffer);
                     string header = strBuffer.Substring(0, 3);
                     if (header.Equals("REQ"))
                     {
@@ -69,9 +68,17 @@ namespace GameServer
             {
                 LoginPlayer(buffer);
             }
+            else if (strCmd == CmdReqList.LOGOUT)
+            {
+                LogoutPlayer();
+            }
             else if (strCmd == CmdReqList.JOINMATCH)
             {
                 JoinMatch();
+            }
+            else if (strCmd == CmdReqList.SELECTCHARACTER)
+            {
+                AddCharacter(buffer);
             }
 
         }
@@ -82,15 +89,35 @@ namespace GameServer
             byte[] data = new byte[length];
             RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
-            Player player = PlayerList.PlayerLogin(strData);
-            if (player != null)
+            if (this.player != null)
             {
-                this.player = player;
+                ReturnError(CmdResList.ALREADY_LOGGED);
+                return;
+            }
+            Player logplayer = PlayerList.PlayerLogin(strData);
+            if (logplayer != null)
+            {
+                this.player = logplayer;
                 ReturnOk();
             }
             else
             {
                 ReturnError(CmdResList.LOGIN_INVALID);
+            }
+        }
+
+        //Si esta jugando el jugador que se desloguea, matar a su jugador
+         private void LogoutPlayer()
+        {
+            if (player != null)
+            {
+                PlayerList.PlayerLogout(this.player);
+                this.player = null;
+                ReturnOk();
+            }
+            else
+            {
+                ReturnError(CmdResList.NOTLOGGED);
             }
         }
 
@@ -105,7 +132,7 @@ namespace GameServer
         {
             int length = Int32.Parse(buffer.Substring(5, 4));
             byte[] data = new byte[length];
-            stream.Read(data, 0, length);
+            RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
             string[] splitData = strData.Split(CmdReqList.NAMEPICSEPARATOR);
             Player player = new Player(splitData[0], Encoding.UTF8.GetBytes(splitData[1]));
@@ -171,14 +198,18 @@ namespace GameServer
 
         private void JoinMatch()
         {
-            if (match.Finished)
+            if (player == null)
+            {
+                ReturnError(CmdResList.NOTLOGGED);
+                return;
+            }
+            else if(match.Finished)
             {
                 ReturnError(CmdResList.MATCHFINISHED);
                 return;
             }
-            if (player != null)
+            else
             {
-                Survivor survivor = new Survivor(player);
                 string addResult = match.AddPlayer(player);
                 if (addResult == CmdResList.MATCHFULL)
                 {
@@ -200,21 +231,35 @@ namespace GameServer
 
         }
 
-        private void AddSurvivor()
+        private void AddCharacter(string buffer)
         {
-            if (match.Finished)
+            if (player == null)
+            {
+                ReturnError(CmdResList.NOTLOGGED);
+                return;
+            }
+            else if (match.Finished)
             {
                 ReturnError(CmdResList.MATCHFINISHED);
                 return;
             }
-            if (player != null)
+            else
             {
-                Survivor survivor = new Survivor(player);
-                string addResult = match.AddCharacter(survivor);
+                Character toAdd = GetCharacter(buffer);
+                string addResult = match.AddCharacter(toAdd);
                 if(addResult == CmdResList.NOTINMATCH)
                 {
                     ReturnError(CmdResList.NOTINMATCH);
-                }else if(addResult == "")
+                }
+                else if (addResult == CmdResList.PLAYERDEAD)
+                {
+                    ReturnError(CmdResList.PLAYERDEAD);
+                }
+                else if (addResult == CmdResList.INMATCH)
+                {
+                    ReturnError(CmdResList.INMATCH);
+                }
+                else if(addResult == "")
                 {
                     ReturnError(CmdResList.UNKNOWN);
                 }
@@ -224,6 +269,26 @@ namespace GameServer
                 }
             }
 
+        }
+
+        private Character GetCharacter(string buffer)
+        {
+            int length = Int32.Parse(buffer.Substring(5, 4));
+            byte[] data = new byte[length];
+            RecieveStream(data);
+            string strData = Encoding.UTF8.GetString(data);
+            if(strData.Equals(TextCommands.MONSTER, StringComparison.InvariantCultureIgnoreCase) )
+            {
+                return new Monster(player);
+            }
+            else if (strData.Equals(TextCommands.SURVIVOR, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new Survivor(player);
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

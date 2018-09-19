@@ -18,7 +18,7 @@ namespace GameClient.Commands
         {
             string header = CmdReqList.HEADER + CmdReqList.LOGIN;
             Console.WriteLine("Enter Player Nickname:");
-            string nickname = Console.ReadLine();
+            string nickname = EnterValidLengthString();
             int length = System.Text.Encoding.UTF8.GetByteCount(nickname);
             string strLength = length.ToString().PadLeft(4, '0');
             return header+strLength + nickname;

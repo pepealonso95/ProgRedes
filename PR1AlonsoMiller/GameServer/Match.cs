@@ -54,7 +54,8 @@ namespace GameServer
             Thread.Sleep(10000);
             ServerMain.BroadcastMessage("MATCH STARTED");
             instance.Finished = false;
-            Thread.Sleep(180000);
+            //180000
+            Thread.Sleep(30000);
             instance.Finished = true;
             instance.Results();
         }
@@ -63,7 +64,7 @@ namespace GameServer
         {
             bool survivorsAlive = false;
             List<Player> monsters = new List<Player>();
-            FindAllInTerrain(survivorsAlive, monsters);
+            FindAllInTerrain(out survivorsAlive, monsters);
             if (survivorsAlive)
             {
                 result = "SURVIVORS WIN!";
@@ -79,8 +80,9 @@ namespace GameServer
             ServerMain.BroadcastMessage(result);
         }
 
-        private void FindAllInTerrain(bool survivorsAlive, List<Player> monsters)
+        private void FindAllInTerrain(out bool survivorsAlive , List<Player> monsters)
         {
+            survivorsAlive = false;
             for (int i = 0; i < Terrain.GetLength(0); i++)
             {
                 for (int j = 0; j < Terrain.GetLength(1); j++)
@@ -100,22 +102,29 @@ namespace GameServer
 
         public string AddPlayer(Player player)
         {
-            Monitor.Enter(turnLock);
             string result = "";
-            PlayerPosition playerToJoin = new PlayerPosition(player);
-            if (playerCount >= MAX_ACTIVE_PLAYERS)
+            if (Finished)
             {
-                result = CmdResList.MATCHFULL;
+                return CmdResList.MATCHFINISHED;
             }
-            else if (!Playing.Contains(playerToJoin))
+            Monitor.Enter(turnLock);
+            if (!Finished)
             {
-                result = CmdResList.INMATCH;
-            }
-            else
-            {
-                Playing.Add(playerToJoin);
-                playerCount++;
-                result = "Succesfully added";
+                PlayerPosition playerToJoin = new PlayerPosition(player);
+                if (playerCount >= MAX_ACTIVE_PLAYERS)
+                {
+                    result = CmdResList.MATCHFULL;
+                }
+                else if (Playing.Contains(playerToJoin))
+                {
+                    result = CmdResList.INMATCH;
+                }
+                else
+                {
+                    Playing.Add(playerToJoin);
+                    playerCount++;
+                    result = "Succesfully added";
+                }
             }
             Monitor.Exit(turnLock);
             return result;
@@ -123,24 +132,35 @@ namespace GameServer
         
         public string AddCharacter(Character character)
         {
-            Monitor.Enter(turnLock);
+            if (character == null)
+            {
+                return CmdResList.UNKNOWN;
+            }
+            if (Finished)
+            {
+                return CmdResList.MATCHFINISHED;
+            }
             string result = "";
-            PlayerPosition playingChar = Playing.FirstOrDefault(p => p.player.Equals(character.player));
-            if (playingChar==null)
+            Monitor.Enter(turnLock);
+            if (!Finished)
             {
-                result = CmdResList.NOTINMATCH;
-            }
-            else if (DeadPlayers.Contains(character.player))
-            {
-                result = CmdResList.PLAYERDEAD;
-            }
-            else if(playingChar.x!=-1&& playingChar.y != -1)
-            {
-                result = CmdResList.INMATCH;
-            }
-            else 
-            {
-                result = AddToTerrain(character);
+                PlayerPosition playingChar = Playing.FirstOrDefault(p => p.player.Equals(character.player));
+                if (playingChar == null)
+                {
+                    result = CmdResList.NOTINMATCH;
+                }
+                else if (DeadPlayers.Contains(character.player))
+                {
+                    result = CmdResList.PLAYERDEAD;
+                }
+                else if (playingChar.x != -1 && playingChar.y != -1)
+                {
+                    result = CmdResList.INMATCH;
+                }
+                else
+                {
+                    result = AddToTerrain(character);
+                }
             }
             Monitor.Exit(turnLock);
             return result;
@@ -226,16 +246,16 @@ namespace GameServer
         {
             if (Finished)
             {
-                return "Must wait for match to start.";
-            }
-            else if (DeadPlayers.Contains(player))
-            {
-                return "You are Dead, must wait for the next match.";
+                return CmdResList.MATCHFINISHED;
             }
             else
             {
                 string response = "";
                 Monitor.Enter(turnLock);
+                if (!Finished)
+                {
+
+                }
                 Monitor.Exit(turnLock);
                 return response;
             }

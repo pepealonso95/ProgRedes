@@ -17,7 +17,7 @@ namespace GameClient.Commands
         {
             string header = CmdReqList.HEADER + CmdReqList.REGISTER;
             Console.WriteLine("Enter Player Nickname:");
-            string nickname = Console.ReadLine();
+            string nickname = EnterValidLengthString();
             Console.WriteLine("Enter Player Picture Path:");
             string picture = GetPictureFromPath(nickname + CmdReqList.NAMEPICSEPARATOR);
             string data = nickname + CmdReqList.NAMEPICSEPARATOR + picture;

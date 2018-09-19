@@ -22,9 +22,19 @@ namespace GameClient
                 interpretation = new CommandLogin();
 
             }
+            else if (command.Equals(TextCommands.LOGOUT, StringComparison.InvariantCultureIgnoreCase))
+            {
+                interpretation = new CommandLogOut();
+
+            }
             else if (command.Equals(TextCommands.JOINMATCH, StringComparison.InvariantCultureIgnoreCase))
             {
                 interpretation = new CommandJoin();
+
+            }
+            else if (command.Equals(TextCommands.SELECTCHARACTER, StringComparison.InvariantCultureIgnoreCase))
+            {
+                interpretation = new CommandSelect();
 
             }
             else if (command.Equals(TextCommands.EXIT, StringComparison.InvariantCultureIgnoreCase))
@@ -55,7 +65,11 @@ namespace GameClient
             }
             else if (command == CmdResList.LOGIN_INVALID)
             {
-                interpretation = "Login Invalid, Nickname does not match an Registered Player";
+                interpretation = "Login Invalid, Nickname in use or doesnt exist";
+            }
+            else if (command == CmdResList.ALREADY_LOGGED)
+            {
+                interpretation = "Must loggout of current user";
             }
             else if (command == CmdResList.MATCHFINISHED)
             {
@@ -63,7 +77,7 @@ namespace GameClient
             }
             else if (command == CmdResList.NOTLOGGED)
             {
-                interpretation = "Must Log in before joining match.";
+                interpretation = "Must be logged to perform this action";
             }
             else if (command == CmdResList.MATCHFULL)
             {
