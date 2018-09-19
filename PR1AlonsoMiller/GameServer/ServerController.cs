@@ -9,7 +9,7 @@ namespace GameServer
     public class ServerController
     {
         public bool Disconnect;
-        public ServerInterpreter interpreter;
+        public IInterpreter interpreter;
 
         public void Start()
         {

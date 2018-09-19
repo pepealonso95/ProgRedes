@@ -8,5 +8,6 @@ namespace GameComm
     public interface IInterpreter
     {
         Command InterpretRequest(string command);
+        string InterpretResponse(string command);
     }
 }

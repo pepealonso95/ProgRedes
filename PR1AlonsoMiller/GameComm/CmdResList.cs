@@ -19,6 +19,17 @@ namespace GameComm
         public const string LOGIN_INVALID = "02";
         public const string SERVERFULL = "03";
 
+        public const string UNKNOWN = "04";
+        public const string NOTLOGGED = "05";
+
+
+        public const string MATCHFINISHED = "09";
+        public const string MATCHFULL = "10";
+        public const string NOTINMATCH = "11";
+        public const string INMATCH = "12";
+        public const string PLAYERDEAD = "13";
+
+
 
         public const string BROADCAST = "98";
         public const string EXIT = "99";

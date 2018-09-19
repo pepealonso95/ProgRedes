@@ -10,15 +10,19 @@ namespace GameServer
 {
     public class ClientHandler
     {
+        private Match match;
         private Player player;
         public bool isConnected;
         private TcpClient client;
         private NetworkStream stream;
+        private bool isPlaying;
         public ClientHandler(TcpClient clientToHandle)
         {
             client = clientToHandle;
             isConnected = true;
             stream = client.GetStream();
+            isPlaying = false;
+            match = Match.Instance();
         }
 
         public void Start()
@@ -49,8 +53,7 @@ namespace GameServer
                 PlayerList.PlayerLogout(player);
             }
         }
-
-
+        
         private void HandleRequest(string buffer)
         {
             string strCmd = buffer.Substring(3, 2);
@@ -61,9 +64,14 @@ namespace GameServer
             else if (strCmd == CmdReqList.REGISTER)
             {
                 RegisterPlayer(buffer);
-            }else if(strCmd == CmdReqList.LOGIN)
+            }
+            else if(strCmd == CmdReqList.LOGIN)
             {
                 LoginPlayer(buffer);
+            }
+            else if (strCmd == CmdReqList.JOINMATCH)
+            {
+                JoinMatch();
             }
 
         }
@@ -111,14 +119,26 @@ namespace GameServer
             }
         }
         
-
         private void ReturnOk()
         {
             string response = CmdResList.HEADER+CmdResList.OK+CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
             stream.Write(send, 0, CmdResList.FIXED_LENGTH);
         }
-        
+        private void ReturnOkWithMessage(string message)
+        {
+            string header = CmdResList.HEADER + CmdResList.OK;
+            int length = System.Text.Encoding.UTF8.GetByteCount(message);
+            if (length > CmdReqList.MAX_VAR_SIZE)
+            {
+                ReturnError(CmdResList.UNKNOWN);
+                return;
+            }
+            string strLength = length.ToString().PadLeft(4, '0');
+            byte[] send = Encoding.UTF8.GetBytes(header + strLength + message);
+            stream.Write(send, 0, send.Length);
+        }
+
         private void ReturnError(string error)
         {
             string response = CmdResList.HEADER + error + CmdResList.NO_VAR;
@@ -147,6 +167,63 @@ namespace GameServer
 
                 }
             }
+        }
+
+        private void JoinMatch()
+        {
+            if (match.Finished)
+            {
+                ReturnError(CmdResList.MATCHFINISHED);
+                return;
+            }
+            if (player != null)
+            {
+                Survivor survivor = new Survivor(player);
+                string addResult = match.AddPlayer(player);
+                if (addResult == CmdResList.MATCHFULL)
+                {
+                    ReturnError(CmdResList.MATCHFULL);
+                }
+                else if(addResult == CmdResList.INMATCH)
+                {
+                    ReturnError(CmdResList.INMATCH);
+                }
+                else if (addResult == "")
+                {
+                    ReturnError(CmdResList.UNKNOWN);
+                }
+                else
+                {
+                    ReturnOkWithMessage(addResult);
+                }
+            }
+
+        }
+
+        private void AddSurvivor()
+        {
+            if (match.Finished)
+            {
+                ReturnError(CmdResList.MATCHFINISHED);
+                return;
+            }
+            if (player != null)
+            {
+                Survivor survivor = new Survivor(player);
+                string addResult = match.AddCharacter(survivor);
+                if(addResult == CmdResList.NOTINMATCH)
+                {
+                    ReturnError(CmdResList.NOTINMATCH);
+                }else if(addResult == "")
+                {
+                    ReturnError(CmdResList.UNKNOWN);
+                }
+                else
+                {
+                    ReturnOkWithMessage(addResult);
+                }
+            }
+
         }
     }
 }

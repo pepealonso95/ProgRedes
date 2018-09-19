@@ -7,7 +7,7 @@ using GameServer.Commands;
 
 namespace GameServer
 {
-    public class ServerInterpreter
+    public class ServerInterpreter : IInterpreter
     {
         public Command InterpretRequest(string command)
         {
@@ -38,6 +38,10 @@ namespace GameServer
             }
             return interpretation;
         }
-        
+
+        public string InterpretResponse(string command)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

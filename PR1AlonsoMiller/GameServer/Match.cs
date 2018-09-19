@@ -1,4 +1,5 @@
 ﻿using Domain;
+using GameComm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +13,9 @@ namespace GameServer
         public const int MAX_ACTIVE_PLAYERS = 32;
         private string result = "No result";
         private static Match instance;
-        private bool finished = true;
+        public bool Finished { get; private set; }
         private int playerCount = 0;
+        private List<PlayerPosition> Playing = new List<PlayerPosition>();
         private Character[,] Terrain = new Character[8,8];
         private List<Player> DeadPlayers = new List<Player>();
         private static readonly object turnLock = new object();
@@ -25,6 +27,7 @@ namespace GameServer
             if (instance == null)
             {
                 instance = new Match();
+                instance.Finished = true;
             }
             return instance;
         }
@@ -41,6 +44,7 @@ namespace GameServer
             result = "No result";
             playerCount = 0;
             DeadPlayers = new List<Player>();
+            Playing  = new List<PlayerPosition>();
         }
 
         public static void StartMatch()
@@ -49,9 +53,9 @@ namespace GameServer
             ServerMain.BroadcastMessage("MATCH STARTS IN 10 SECONDS");
             Thread.Sleep(10000);
             ServerMain.BroadcastMessage("MATCH STARTED");
-            instance.finished = false;
+            instance.Finished = false;
             Thread.Sleep(180000);
-            instance.finished = true;
+            instance.Finished = true;
             instance.Results();
         }
 
@@ -93,19 +97,50 @@ namespace GameServer
                 }
             }
         }
-        
-        public string AddCharacter(Character character)
+
+        public string AddPlayer(Player player)
         {
-            string result = "";
             Monitor.Enter(turnLock);
-            if (playerCount < 32)
+            string result = "";
+            PlayerPosition playerToJoin = new PlayerPosition(player);
+            if (playerCount >= MAX_ACTIVE_PLAYERS)
             {
-                result = AddToTerrain(character);
-                playerCount++;
+                result = CmdResList.MATCHFULL;
+            }
+            else if (!Playing.Contains(playerToJoin))
+            {
+                result = CmdResList.INMATCH;
             }
             else
             {
-                result = "Game full, try again later.";
+                Playing.Add(playerToJoin);
+                playerCount++;
+                result = "Succesfully added";
+            }
+            Monitor.Exit(turnLock);
+            return result;
+        }
+        
+        public string AddCharacter(Character character)
+        {
+            Monitor.Enter(turnLock);
+            string result = "";
+            PlayerPosition playingChar = Playing.FirstOrDefault(p => p.player.Equals(character.player));
+            if (playingChar==null)
+            {
+                result = CmdResList.NOTINMATCH;
+            }
+            else if (DeadPlayers.Contains(character.player))
+            {
+                result = CmdResList.PLAYERDEAD;
+            }
+            else if(playingChar.x!=-1&& playingChar.y != -1)
+            {
+                result = CmdResList.INMATCH;
+            }
+            else 
+            {
+                result = AddToTerrain(character);
             }
             Monitor.Exit(turnLock);
             return result;
@@ -127,14 +162,22 @@ namespace GameServer
                     List<Character> adjacentCharacters = FindAdjacentCharacters(row, column);
                     if (adjacentCharacters.Count == 0)
                     {
-                        Terrain[row, column] = character;
-                        position = "Added to pos ["+row+","+column+"]";
+                        position = UpdatePosition(character, row, column);
                         added = true;
                     }
                 }
             }
             return position;
 
+        }
+
+        private string UpdatePosition(Character character, int row, int column)
+        {
+            Terrain[row, column] = character;
+            PlayerPosition charPosition = Playing.FirstOrDefault(p=>p.player.Equals(character.player));
+            charPosition.x = row;
+            charPosition.y = column;
+            return "Character in [" + row + "," + column + "]";
         }
 
         private List<Character> FindAdjacentCharacters(int row, int column)
@@ -181,7 +224,7 @@ namespace GameServer
 
         public string PlayerCommand(Player player, string command)
         {
-            if (finished)
+            if (Finished)
             {
                 return "Must wait for match to start.";
             }

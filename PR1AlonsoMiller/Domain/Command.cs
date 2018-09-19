@@ -18,6 +18,7 @@ namespace Domain
     {
         REGISTER,
         LOGIN,
+        JOINMATCH,
         EXIT,
         UNKNOWN
 

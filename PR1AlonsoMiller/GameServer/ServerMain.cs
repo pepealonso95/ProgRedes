@@ -36,6 +36,7 @@ namespace GameServer
                     clients.Add(client);
                     if (clients.Count > MAX_PLAYERS_CONNECTED)
                     {
+                        //send message serverfull
                         client.GetStream().Close();
                         client.Close();
                         clients.Remove(client);

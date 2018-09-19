@@ -45,6 +45,7 @@
     <Compile Include="IInterpreter.cs" />
     <Compile Include="Monster.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="PlayerPosition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Character.cs" />
     <Compile Include="RoleValues.cs" />

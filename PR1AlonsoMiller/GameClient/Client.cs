@@ -16,9 +16,11 @@ namespace GameClient
         private TcpClient socket;
         public ClientInterpreter interpreter;
         private NetworkStream stream;
+        private bool expectingResult;
         private static readonly object useLock = new object();
         public void Start(TcpClient client)
         {
+            expectingResult = false;
             PrintCommands();
             interpreter = new ClientInterpreter();
             socket = client;
@@ -35,6 +37,7 @@ namespace GameClient
             Console.WriteLine("Available Commands:");
             Console.WriteLine(TextCommands.REGISTER);
             Console.WriteLine(TextCommands.LOGIN);
+            Console.WriteLine(TextCommands.JOINMATCH);
             Console.WriteLine(TextCommands.EXIT);
             Console.WriteLine("");
         }
@@ -47,7 +50,8 @@ namespace GameClient
                 string command = "";
                 while ((command == "" || command == "Error")&&isConnected)
                 {
-                    command = Request();
+                    if(!expectingResult)
+                        command = Request();
                 }
                 if (command == "Exit"||!isConnected)
                 {
@@ -57,6 +61,7 @@ namespace GameClient
                 {
                     byte[] buffer = Encoding.UTF8.GetBytes(command);
                     stream.Write(buffer, 0, buffer.Length);
+                    expectingResult = true;
                 }
                 }
             }
@@ -85,31 +90,12 @@ namespace GameClient
                     string header = strBuffer.Substring(0, 3);
                     if (header.Equals("RES"))
                     {
-                        if (strBuffer.Substring(3, 2) == CmdResList.BROADCAST) { }
-                        else if (strBuffer.Substring(3, 2) == CmdResList.OK)
-                        {
-                            Console.WriteLine("Operation Succesful");
-                        }
-                        else if (strBuffer.Substring(3, 2) == CmdResList.REGISTER_INVALID)
-                        {
-                            Console.WriteLine("Register Invalid, Nickname already exists");
-                        }
-                        else if (strBuffer.Substring(3, 2) == CmdResList.LOGIN_INVALID)
-                        {
-                            Console.WriteLine("Login Invalid, Nickname does not match an Registered Player");
-                        }
-
-                        else if (strBuffer.Substring(3, 2) == CmdResList.EXIT)
-                        {
-                            throw new DisconnectedException("Disconnected from server");
-                        }
-                        else
-                        {
-                            throw new DisconnectedException("Unknown request from server");
-                        }
+                        InterpretResponse(strBuffer.Substring(3, 2));
+                        if (isConnected)
+                            PrintServerResponse(strBuffer);
+                        if (strBuffer.Substring(3, 2) != CmdResList.BROADCAST)
+                            expectingResult = false;
                     }
-                if(isConnected)
-                    PrintServerResponse(strBuffer);
                 }
             }
             catch (DisconnectedException e)
@@ -124,18 +110,34 @@ namespace GameClient
             }
         }
 
+        private void InterpretResponse(string response)
+        {
+            string interpretation = interpreter.InterpretResponse(response);
+            if (interpretation != "")
+            {
+                Console.WriteLine(interpretation);
+            }
+        }
+
         private void PrintServerResponse(string strBuffer)
         {
-            string strVarLength = strBuffer.Substring(5, 4);
-            int length = Int32.Parse(strVarLength);
-            byte[] data = new byte[length];
-            RecieveStream(data);
-            string response = Encoding.UTF8.GetString(data);
-            Console.WriteLine(response);
+            if (strBuffer.Length > 8)
+            {
+                string strVarLength = strBuffer.Substring(5, 4);
+                int length = Int32.Parse(strVarLength);
+                if (length > 0)
+                {
+                    byte[] data = new byte[length];
+                    RecieveStream(data);
+                    string response = Encoding.UTF8.GetString(data);
+                    Console.WriteLine(response);
+                }
+            }
         }
 
         public string Request()
         {
+            
             Console.WriteLine("Enter Command:");
             string enteredValue = Console.ReadLine();
             Command command = interpreter.InterpretRequest(enteredValue);
