@@ -23,6 +23,8 @@ namespace GameComm
         public const string JOINMATCH = "04";
         public const string SELECTCHARACTER = "05";
 
+        public const string MOVECHARACTER = "06";
+
         public const string EXIT = "99";
     }
 }

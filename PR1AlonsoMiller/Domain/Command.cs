@@ -21,6 +21,7 @@ namespace Domain
         LOGOUT,
         JOINMATCH,
         SELECTCHARACTER,
+        MOVE,
         EXIT,
         UNKNOWN
 

@@ -80,6 +80,10 @@ namespace GameServer
             {
                 AddCharacter(buffer);
             }
+            else if (strCmd == CmdReqList.MOVECHARACTER)
+            {
+                MoveCharacter(buffer);
+            }
 
         }
 
@@ -130,6 +134,10 @@ namespace GameServer
 
         private void RegisterPlayer(string buffer)
         {
+            if (this.player != null) {
+                ReturnError(CmdResList.INVALID_WHILE_PLAYING);
+                return;
+            }
             int length = Int32.Parse(buffer.Substring(5, 4));
             byte[] data = new byte[length];
             RecieveStream(data);
@@ -288,6 +296,54 @@ namespace GameServer
             else
             {
                 return null;
+            }
+        }
+
+
+
+        private void MoveCharacter(string buffer)
+        {
+            if (player == null)
+            {
+                ReturnError(CmdResList.NOTLOGGED);
+                return;
+            }
+            else if (match.Finished)
+            {
+                ReturnError(CmdResList.MATCHFINISHED);
+                return;
+            }
+            else
+            {
+                int length = Int32.Parse(buffer.Substring(5, 4));
+                byte[] data = new byte[length];
+                RecieveStream(data);
+                string directions = Encoding.UTF8.GetString(data);
+                string addResult = match.Move(player,directions);
+                if (addResult == CmdResList.NOTINMATCH)
+                {
+                    ReturnError(CmdResList.NOTINMATCH);
+                }
+                else if (addResult == CmdResList.PLAYERDEAD)
+                {
+                    ReturnError(CmdResList.PLAYERDEAD);
+                }
+                else if (addResult == "")
+                {
+                    ReturnError(CmdResList.UNKNOWN);
+                }
+                else if (addResult == CmdResList.OUT_OF_BOUNDS)
+                {
+                    ReturnError(CmdResList.OUT_OF_BOUNDS);
+                }
+                else if (addResult == CmdResList.OCCUPIED)
+                {
+                    ReturnError(CmdResList.OCCUPIED);
+                }
+                else
+                {
+                    ReturnOkWithMessage(addResult);
+                }
             }
         }
     }

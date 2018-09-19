@@ -37,6 +37,11 @@ namespace GameClient
                 interpretation = new CommandSelect();
 
             }
+            else if (command.Equals(TextCommands.MOVE, StringComparison.InvariantCultureIgnoreCase))
+            {
+                interpretation = new CommandMove();
+
+            }
             else if (command.Equals(TextCommands.EXIT, StringComparison.InvariantCultureIgnoreCase))
             {
                 interpretation = new CommandExit();
@@ -86,6 +91,22 @@ namespace GameClient
             else if (command == CmdResList.INMATCH)
             {
                 interpretation = "Player already in match";
+            }
+            else if (command == CmdResList.INVALID_WHILE_PLAYING)
+            {
+                interpretation = "Invalid action while in match";
+            }
+            else if (command == CmdResList.NOT_PLAYING)
+            {
+                interpretation = "Invalid action out of match";
+            }
+            else if (command == CmdResList.OUT_OF_BOUNDS)
+            {
+                interpretation = "Cant move out of board limits";
+            }
+            else if (command == CmdResList.OCCUPIED)
+            {
+                interpretation = "Position is already occupied by another player";
             }
             else if (command == CmdResList.EXIT)
             {

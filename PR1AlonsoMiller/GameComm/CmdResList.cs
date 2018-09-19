@@ -29,8 +29,12 @@ namespace GameComm
         public const string NOTINMATCH = "11";
         public const string INMATCH = "12";
         public const string PLAYERDEAD = "13";
+        public const string OUT_OF_BOUNDS = "14";
+        public const string OCCUPIED = "15";
 
 
+        public const string INVALID_WHILE_PLAYING = "20";
+        public const string NOT_PLAYING = "21";
 
         public const string BROADCAST = "98";
         public const string EXIT = "99";

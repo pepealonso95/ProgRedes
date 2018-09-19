@@ -55,7 +55,7 @@ namespace GameServer
             ServerMain.BroadcastMessage("MATCH STARTED");
             instance.Finished = false;
             //180000
-            Thread.Sleep(30000);
+            Thread.Sleep(600000);
             instance.Finished = true;
             instance.Results();
         }
@@ -197,7 +197,7 @@ namespace GameServer
             PlayerPosition charPosition = Playing.FirstOrDefault(p=>p.player.Equals(character.player));
             charPosition.x = row;
             charPosition.y = column;
-            return "Character in [" + row + "," + column + "]";
+            return "Character in vertical:" + row + " horizontal:" + column;
         }
 
         private List<Character> FindAdjacentCharacters(int row, int column)
@@ -242,7 +242,7 @@ namespace GameServer
             }
         }
 
-        public string PlayerCommand(Player player, string command)
+        public string Move(Player player, string directions)
         {
             if (Finished)
             {
@@ -254,10 +254,112 @@ namespace GameServer
                 Monitor.Enter(turnLock);
                 if (!Finished)
                 {
-
+                    PlayerPosition playingChar = Playing.FirstOrDefault(p => p.player.Equals(player));
+                    if (playingChar == null)
+                    {
+                        response = CmdResList.NOTINMATCH;
+                    }
+                    else if (DeadPlayers.Contains(player))
+                    {
+                        response = CmdResList.PLAYERDEAD;
+                    }
+                    else
+                    {
+                        response = MoveCharacter(playingChar, directions[0]);
+                        if (MoveOk(response) )
+                        {
+                            if (directions.Length == 2)
+                            {
+                                string nextResponse = MoveCharacter(playingChar, directions[1]);
+                                if (MoveOk(nextResponse))
+                                {
+                                    response = nextResponse;
+                                }
+                                else
+                                {
+                                    response += ", second move invalid";
+                                }
+                            }
+                            response += InformNearCharacters(playingChar);
+                        }
+                    }
                 }
                 Monitor.Exit(turnLock);
                 return response;
+            }
+        }
+
+        private string InformNearCharacters(PlayerPosition playingChar)
+        {
+            List<Character> nearCharacters = FindAdjacentCharacters(playingChar.x, playingChar.y);
+            string response = ". Nearby characters: ";
+            foreach(Character character in nearCharacters)
+            {
+                if (character.GetAttack() == RoleValues.SURVIVOR_ATTACK)
+                {
+                    response+=" Survivor,";
+                }
+                else if (character.GetAttack() == RoleValues.MONSTER_ATTACK)
+                {
+                    response += " Monster,";
+                }
+            }
+            if (nearCharacters.Count == 0)
+            {
+                response += " None";
+            }
+            return response;
+        }
+
+        private bool MoveOk(string response)
+        {
+            return response != CmdResList.UNKNOWN && response != CmdResList.OCCUPIED && response != CmdResList.OUT_OF_BOUNDS;
+        }
+
+        private string MoveCharacter(PlayerPosition playingChar, char direction)
+        {
+            int nextRow = playingChar.x;
+            int nextColumn = playingChar.y;
+            if (direction == 'U')
+            {
+                nextRow = nextRow - 1;
+            }
+            else if (direction == 'D')
+            {
+                nextRow = nextRow + 1;
+            }
+            else if (direction == 'R')
+            {
+                nextColumn = nextColumn + 1;
+            }
+            else if (direction == 'L')
+            {
+                nextColumn = nextColumn - 1;
+            }
+            else
+            {
+                return CmdResList.UNKNOWN;
+            }
+            return ValidateMovement(playingChar, nextRow, nextColumn);
+        }
+
+        private string ValidateMovement(PlayerPosition playingChar, int nextRow, int nextColumn)
+        {
+            if (nextRow < 0 || nextRow > Terrain.GetLength(0) || nextColumn < 0 || nextColumn > Terrain.GetLength(1))
+            {
+                return CmdResList.OUT_OF_BOUNDS;
+            }
+            else if (PositionIsOccupied(Terrain[nextRow, nextColumn]))
+            {
+                return CmdResList.OCCUPIED;
+            }
+            else
+            {
+                Terrain[nextRow, nextColumn] = Terrain[playingChar.x, playingChar.y];
+                Terrain[playingChar.x, playingChar.y] = new Survivor();
+                playingChar.x = nextRow;
+                playingChar.y = nextColumn;
+                return "Character in vertical:" + nextRow + " horizontal:" + nextColumn;
             }
         }
 
