@@ -42,6 +42,11 @@ namespace GameClient
                 interpretation = new CommandMove();
 
             }
+            else if (command.Equals(TextCommands.ATTACK, StringComparison.InvariantCultureIgnoreCase))
+            {
+                interpretation = new CommandAttack();
+
+            }
             else if (command.Equals(TextCommands.EXIT, StringComparison.InvariantCultureIgnoreCase))
             {
                 interpretation = new CommandExit();
@@ -71,6 +76,10 @@ namespace GameClient
             else if (command == CmdResList.LOGIN_INVALID)
             {
                 interpretation = "Login Invalid, Nickname in use or doesnt exist";
+            }
+            else if (command == CmdResList.SERVERFULL)
+            {
+                interpretation = "Server is full, cannout connect";
             }
             else if (command == CmdResList.ALREADY_LOGGED)
             {
@@ -107,6 +116,18 @@ namespace GameClient
             else if (command == CmdResList.OCCUPIED)
             {
                 interpretation = "Position is already occupied by another player";
+            }
+            else if (command == CmdResList.PLAYERDEAD)
+            {
+                interpretation = "Your player is dead,";
+            }
+            else if (command == CmdResList.NOTINMATCH)
+            {
+                interpretation = "You must be in match to perform this action";
+            }
+            else if (command == CmdResList.DIDNT_SELECT)
+            {
+                interpretation = "You must select a character first";
             }
             else if (command == CmdResList.EXIT)
             {

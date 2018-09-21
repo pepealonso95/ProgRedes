@@ -31,6 +31,7 @@ namespace GameComm
         public const string PLAYERDEAD = "13";
         public const string OUT_OF_BOUNDS = "14";
         public const string OCCUPIED = "15";
+        public const string DIDNT_SELECT = "16";
 
 
         public const string INVALID_WHILE_PLAYING = "20";

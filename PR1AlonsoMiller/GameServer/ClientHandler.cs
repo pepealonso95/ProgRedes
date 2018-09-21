@@ -49,6 +49,7 @@ namespace GameServer
             }
             if (player != null)
             {
+                match.PlayerKill(player);
                 PlayerList.PlayerLogout(player);
             }
         }
@@ -84,6 +85,10 @@ namespace GameServer
             {
                 MoveCharacter(buffer);
             }
+            else if (strCmd == CmdReqList.ATTACKCHARACTER)
+            {
+                AttackCharacter();
+            }
 
         }
 
@@ -109,12 +114,12 @@ namespace GameServer
                 ReturnError(CmdResList.LOGIN_INVALID);
             }
         }
-
-        //Si esta jugando el jugador que se desloguea, matar a su jugador
+        
          private void LogoutPlayer()
         {
             if (player != null)
             {
+                match.PlayerKill(player);
                 PlayerList.PlayerLogout(this.player);
                 this.player = null;
                 ReturnOk();
@@ -300,6 +305,48 @@ namespace GameServer
         }
 
 
+        private void AttackCharacter()
+        {
+            if (player == null)
+            {
+                ReturnError(CmdResList.NOTLOGGED);
+                return;
+            }
+            else if (match.Finished)
+            {
+                ReturnError(CmdResList.MATCHFINISHED);
+                return;
+            }
+            else
+            {
+                string addResult = match.Attack(player);
+                if (addResult == CmdResList.NOTINMATCH)
+                {
+                    ReturnError(CmdResList.NOTINMATCH);
+                }
+                else if (addResult == CmdResList.PLAYERDEAD)
+                {
+                    ReturnError(CmdResList.PLAYERDEAD);
+                }
+                else if (addResult == CmdResList.DIDNT_SELECT)
+                {
+                    ReturnError(CmdResList.DIDNT_SELECT);
+                }
+                else if (addResult == "")
+                {
+                    ReturnError(CmdResList.UNKNOWN);
+                }
+                else if (match.Finished)
+                {
+                    ReturnError(CmdResList.MATCHFINISHED);
+                    return;
+                }
+                else
+                {
+                    ReturnOkWithMessage(addResult);
+                }
+            }
+        }
 
         private void MoveCharacter(string buffer)
         {
@@ -336,9 +383,18 @@ namespace GameServer
                 {
                     ReturnError(CmdResList.OUT_OF_BOUNDS);
                 }
+                else if (addResult == CmdResList.DIDNT_SELECT)
+                {
+                    ReturnError(CmdResList.DIDNT_SELECT);
+                }
                 else if (addResult == CmdResList.OCCUPIED)
                 {
                     ReturnError(CmdResList.OCCUPIED);
+                }
+                else if (addResult == CmdResList.MATCHFINISHED)
+                {
+                    ReturnError(CmdResList.MATCHFINISHED);
+                    return;
                 }
                 else
                 {

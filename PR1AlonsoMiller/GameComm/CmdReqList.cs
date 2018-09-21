@@ -24,6 +24,7 @@ namespace GameComm
         public const string SELECTCHARACTER = "05";
 
         public const string MOVECHARACTER = "06";
+        public const string ATTACKCHARACTER = "07";
 
         public const string EXIT = "99";
     }

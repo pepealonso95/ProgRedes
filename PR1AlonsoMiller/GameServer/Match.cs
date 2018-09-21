@@ -54,8 +54,7 @@ namespace GameServer
             Thread.Sleep(10000);
             ServerMain.BroadcastMessage("MATCH STARTED");
             instance.Finished = false;
-            //180000
-            Thread.Sleep(600000);
+            Thread.Sleep(180000);
             instance.Finished = true;
             instance.Results();
         }
@@ -139,6 +138,10 @@ namespace GameServer
             if (Finished)
             {
                 return CmdResList.MATCHFINISHED;
+            }
+            if (DeadPlayers.Contains(character.player))
+            {
+                return CmdResList.PLAYERDEAD;
             }
             string result = "";
             Monitor.Enter(turnLock);
@@ -259,6 +262,10 @@ namespace GameServer
                     {
                         response = CmdResList.NOTINMATCH;
                     }
+                    else if (playingChar.x==-1|| playingChar.y==-1)
+                    {
+                        response = CmdResList.DIDNT_SELECT;
+                    }
                     else if (DeadPlayers.Contains(player))
                     {
                         response = CmdResList.PLAYERDEAD;
@@ -367,5 +374,133 @@ namespace GameServer
         {
             return position.GetAttack() != 0;
         }
+
+        public string Attack(Player player)
+        {
+            if (Finished)
+            {
+                return CmdResList.MATCHFINISHED;
+            }
+            else
+            {
+                string response = "";
+                Monitor.Enter(turnLock);
+                if (!Finished)
+                {
+                    PlayerPosition playingChar = Playing.FirstOrDefault(p => p.player.Equals(player));
+                    if (playingChar == null)
+                    {
+                        response = CmdResList.NOTINMATCH;
+                    }
+                    else if (playingChar.x == -1 || playingChar.y == -1)
+                    {
+                        response = CmdResList.DIDNT_SELECT;
+                    }
+                    else if (DeadPlayers.Contains(player))
+                    {
+                        response = CmdResList.PLAYERDEAD;
+                    }
+                    else
+                    {
+                            response = AttackNearCharacters(playingChar);
+                    }
+                }
+                Monitor.Exit(turnLock);
+                return response;
+            }
+        }
+
+        private string AttackNearCharacters(PlayerPosition playingChar)
+        {
+            List<Character> nearCharacters = FindAdjacentCharacters(playingChar.x, playingChar.y);
+            Character myCharacter = Terrain[playingChar.x, playingChar.y];
+            string response = ". Attacked: ";
+            foreach (Character character in nearCharacters)
+            {
+                if (character.GetAttack() == RoleValues.SURVIVOR_ATTACK)
+                {
+                    if(myCharacter.GetAttack()!= RoleValues.SURVIVOR_ATTACK)
+                    {
+                        character.TakeDamage(myCharacter.GetAttack());
+                        response += " Survivor";
+                    }
+                }
+                else if (character.GetAttack() == RoleValues.MONSTER_ATTACK)
+                {
+                    character.TakeDamage(myCharacter.GetAttack());
+                    response += " Monster";
+                }
+                if (!character.IsAlive())
+                {
+                    response += Kill(character.player);
+                }
+                response += ",";
+            }
+            if (nearCharacters.Count == 0)
+            {
+                response += " None";
+            }
+            return response;
+        }
+        private string Kill(Player player)
+        {
+            string response = "";
+            if (!Finished)
+            {
+                PlayerPosition playerToKill = Playing.FirstOrDefault(p => p.player.Equals(player));
+                if (playerToKill == null)
+                {
+                    response = CmdResList.NOTINMATCH;
+                }
+                else if (playerToKill.x == -1 || playerToKill.y == -1)
+                {
+                    response = CmdResList.DIDNT_SELECT;
+                }
+                else if (DeadPlayers.Contains(player))
+                {
+                    response = CmdResList.PLAYERDEAD;
+                }
+                else
+                {
+                    Terrain[playerToKill.x, playerToKill.y] = new Survivor();
+                    DeadPlayers.Add(player);
+                    response = "Killed (" + player.Nickname + ")";
+                }
+                return response;
+            }
+            else
+            {
+                return CmdResList.MATCHFINISHED;
+            }
+        }
+
+        public void PlayerKill(Player player)
+        {
+            if (player == null)
+            {
+                return;
+            }
+            if (Finished)
+            {
+                return;
+            }
+            if (DeadPlayers.Contains(player))
+            {
+               return;
+            }
+            PlayerPosition playerToKill = Playing.FirstOrDefault(p => p.player.Equals(player));
+            if (playerToKill == null)
+            {
+                return;
+            }
+            else if (playerToKill.x == -1 || playerToKill.y == -1)
+            {
+                return;
+            }
+            Monitor.Enter(turnLock);
+            Kill(player);
+            Monitor.Exit(turnLock);
+        }
+
     }
 }

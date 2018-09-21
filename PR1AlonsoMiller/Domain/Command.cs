@@ -22,6 +22,7 @@ namespace Domain
         JOINMATCH,
         SELECTCHARACTER,
         MOVE,
+        ATTACK,
         EXIT,
         UNKNOWN
 
