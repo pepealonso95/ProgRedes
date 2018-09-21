@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
 namespace GameServer
 {
@@ -19,9 +20,13 @@ namespace GameServer
         private static TcpListener server;
         public static void Main(string[] args)
         {
-            IPEndPoint ipthis = new IPEndPoint(IPAddress.Parse(CmdReqList.SERVERIP), 2000);
+            IConfiguration config = new ConfigurationBuilder()
+            .AddJsonFile("installConfig.json", optional: true, reloadOnChange: true)
+            .Build();
+            IPEndPoint ipthis = new IPEndPoint(IPAddress.Parse(config.GetSection("serverip").Value), 2000);
             server = new TcpListener(ipthis);
             Match.Instance();
+            Match.duration = config.GetSection("matchduration").Value;
             clients = new List<TcpClient>();
             server.Start(Match.MAX_ACTIVE_PLAYERS);
             isConnected = true;

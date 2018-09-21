@@ -1,5 +1,5 @@
 ﻿using System;
-using Domain;
+using GameComm;
 using System.Collections.Generic;
 using System.Text;
 

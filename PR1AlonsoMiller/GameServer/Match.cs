@@ -13,6 +13,7 @@ namespace GameServer
         public const int MAX_ACTIVE_PLAYERS = 32;
         private string result = "No result";
         private static Match instance;
+        public static string duration = "180000";
         public bool Finished { get; private set; }
         private int playerCount = 0;
         private List<PlayerPosition> Playing = new List<PlayerPosition>();
@@ -54,7 +55,7 @@ namespace GameServer
             Thread.Sleep(10000);
             ServerMain.BroadcastMessage("MATCH STARTED");
             instance.Finished = false;
-            Thread.Sleep(180000);
+            Thread.Sleep(Int32.Parse(duration));
             instance.Finished = true;
             instance.Results();
         }

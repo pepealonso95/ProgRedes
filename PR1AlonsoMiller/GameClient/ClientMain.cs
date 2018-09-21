@@ -1,23 +1,22 @@
 ﻿using System;
-using Domain;
-using GameComm;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace GameClient
 {
     public class ClientMain
     {
-        static int port = 2001;
         static void Main(string[] args)
         {
-            
+            IConfiguration config = new ConfigurationBuilder()
+            .AddJsonFile("installConfig.json", optional: true, reloadOnChange: true)
+            .Build();
             TcpClient client = new TcpClient();
             Console.WriteLine("Connecting");
             while (!client.Connected)
             {
-                client.Connect(IPAddress.Parse(CmdReqList.SERVERIP), 2000);
+                client.Connect(IPAddress.Parse(config.GetSection("serverip").Value), 2000);
             }
             Console.WriteLine("Connected");
             new Client().Start(client);

@@ -11,8 +11,6 @@ namespace GameComm
 
         public const string NO_VAR = "0000";
 
-        public const string SERVERIP = "192.168.1.21";
-
         public const string HEADER = "REQ";
 
         public const string UNKNOWN = "00";

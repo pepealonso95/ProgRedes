@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using GameComm;
-using Domain;
-using System.Net;
 using System.Net.Sockets;
-using GameClient.Commands;
 using System.Threading;
 
 namespace GameClient

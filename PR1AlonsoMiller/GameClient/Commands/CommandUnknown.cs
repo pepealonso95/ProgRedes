@@ -1,7 +1,5 @@
 ﻿using System;
-using Domain;
-using System.Collections.Generic;
-using System.Text;
+using GameComm;
 
 namespace GameClient.Commands
 {

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using GameClient.Commands;
-using Domain;
 using GameComm;
 
 namespace GameClient
