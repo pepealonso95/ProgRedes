@@ -8,6 +8,7 @@ namespace GameComm
     {
         public const int MAX_VAR_SIZE = 9999;
         public const string NAMEPICSEPARATOR = "</%#?>";
+        public const string IMAGEREQSEPARATOR = "<&/$·>";
 
         public const string NO_VAR = "0000";
 
@@ -23,6 +24,9 @@ namespace GameComm
 
         public const string MOVECHARACTER = "06";
         public const string ATTACKCHARACTER = "07";
+
+
+        public const string PICTURE = "20";
 
         public const string EXIT = "99";
     }

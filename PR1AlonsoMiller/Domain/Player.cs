@@ -10,7 +10,7 @@ namespace Domain
         public string Nickname { get; }
 
         [DataMember]
-        public byte[] Image { get; }
+        public byte[] Image { get; set; }
 
         private bool loggedIn;
 

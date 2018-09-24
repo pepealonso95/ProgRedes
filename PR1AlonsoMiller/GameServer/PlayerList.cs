@@ -84,5 +84,15 @@ namespace GameServer
             return logged;
         }
 
+        public static void SetImage(Player registering, string registeringImg)
+        {
+            Monitor.Enter(useLock);
+            if (GetInstance().Contains(registering))
+            {
+                Player imgChange = GetInstance().Find(p => p.Nickname == registering.Nickname);
+                imgChange.Image = Encoding.ASCII.GetBytes(registeringImg);
+            }
+            Monitor.Exit(useLock);
+        }
     }
 }

@@ -23,6 +23,10 @@ namespace GameComm
         public const string NOTLOGGED = "05";
         public const string ALREADY_LOGGED = "06";
 
+        public const string NOT_EXPECTING_IMG = "07";
+        public const string EXPECTING_IMG = "08";
+
+
 
         public const string MATCHFINISHED = "09";
         public const string MATCHFULL = "10";
@@ -36,6 +40,7 @@ namespace GameComm
 
         public const string INVALID_WHILE_PLAYING = "20";
         public const string NOT_PLAYING = "21";
+
 
         public const string BROADCAST = "98";
         public const string EXIT = "99";

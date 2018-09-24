@@ -10,12 +10,18 @@ namespace GameServer
 {
     public class ClientHandler
     {
-        private Match match;
-        private Player player;
         public bool isConnected;
         private TcpClient client;
         private NetworkStream stream;
+
+        private Match match;
+        private Player player;
         private bool isPlaying;
+
+        private int expectedImgFiles = 0;
+        private Player registering;
+        private string registeringImg;
+
         public ClientHandler(TcpClient clientToHandle)
         {
             client = clientToHandle;
@@ -23,6 +29,8 @@ namespace GameServer
             stream = client.GetStream();
             isPlaying = false;
             match = Match.Instance();
+            expectedImgFiles = 0;
+            registeringImg = "";
         }
 
         public void Start()
@@ -57,6 +65,14 @@ namespace GameServer
         private void HandleRequest(string buffer)
         {
             string strCmd = buffer.Substring(3, 2);
+            if(expectedImgFiles!=0&& strCmd != CmdReqList.PICTURE)
+            {
+                ReturnError(CmdResList.EXPECTING_IMG);
+            }
+            if(strCmd == CmdReqList.PICTURE)
+            {
+                AddDataToPicture(buffer);
+            }
             if(strCmd == CmdReqList.EXIT)
             {
                 throw new DisconnectedException("Close");
@@ -90,6 +106,29 @@ namespace GameServer
                 AttackCharacter();
             }
 
+        }
+
+        private void AddDataToPicture(string buffer)
+        {
+            if (expectedImgFiles > 0)
+            {
+                int length = Int32.Parse(buffer.Substring(5, 4));
+                byte[] data = new byte[length];
+                RecieveStream(data);
+                registeringImg += Encoding.UTF8.GetString(data);
+                expectedImgFiles--;
+                if (expectedImgFiles == 0)
+                {
+                    PlayerList.SetImage(registering, registeringImg);
+                    registeringImg = "";
+                    registering = null;
+                    ReturnOk();
+                }
+            }
+            else
+            {
+                ReturnError(CmdResList.NOT_EXPECTING_IMG);
+            }
         }
 
         private void LoginPlayer(string buffer)
@@ -148,15 +187,13 @@ namespace GameServer
             RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
             string[] splitData = strData.Split(CmdReqList.NAMEPICSEPARATOR);
-            Player player = new Player(splitData[0], Encoding.UTF8.GetBytes(splitData[1]));
-            if (PlayerList.PlayerRegister(player))
-            {
-                ReturnOk();
-            }
-            else
+            Player player = new Player(splitData[0]);
+            if (!PlayerList.PlayerRegister(player))
             {
                 ReturnError(CmdResList.REGISTER_INVALID);
             }
+            registering = new Player(player.Nickname);
+            expectedImgFiles = Int32.Parse(splitData[1]);
         }
         
         private void ReturnOk()

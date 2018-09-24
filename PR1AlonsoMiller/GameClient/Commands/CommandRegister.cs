@@ -11,30 +11,48 @@ namespace GameClient.Commands
         }
         public override string Run()
         {
-            string header = CmdReqList.HEADER + CmdReqList.REGISTER;
             Console.WriteLine("Enter Player Nickname:");
             string nickname = EnterValidLengthString();
             Console.WriteLine("Enter Player Picture Path:");
-            string picture = GetPictureFromPath(nickname + CmdReqList.NAMEPICSEPARATOR);
-            string data = nickname + CmdReqList.NAMEPICSEPARATOR + picture;
-            int length = System.Text.Encoding.UTF8.GetByteCount(data);
-            string strLength = length.ToString().PadLeft(4, '0');
-            return header+strLength + data;
+            byte[] picture = GetPictureFromPath();
+            string allMessages = GetSplitSendPicture(nickname, picture);
+            return allMessages;
         }
 
-        private string GetPictureFromPath(string prevData)
+        private string GetSplitSendPicture(string nickname, byte[] picture)
         {
-            string strImage = "";
-            while (strImage.Equals(""))
+            string sendMessage = "";
+            int amountOfMessages = picture.Length / CmdReqList.MAX_VAR_SIZE;
+            int finalMsgLength = picture.Length % CmdReqList.MAX_VAR_SIZE;
+            string composedMessage = nickname + CmdReqList.NAMEPICSEPARATOR + (amountOfMessages+1);
+            int length = System.Text.Encoding.UTF8.GetByteCount(composedMessage);
+            string strLength = length.ToString().PadLeft(4, '0');
+            sendMessage = CmdReqList.HEADER + CmdReqList.REGISTER + strLength+composedMessage;
+            for (int i = 0; i < amountOfMessages; i++)
+            {
+                byte[] subarray = new byte[CmdReqList.MAX_VAR_SIZE];
+                Buffer.BlockCopy(picture, i * CmdReqList.MAX_VAR_SIZE, subarray, 0, CmdReqList.MAX_VAR_SIZE);
+                string picturePart = System.Text.Encoding.UTF8.GetString(subarray);
+                sendMessage += CmdReqList.HEADER + CmdReqList.PICTURE + CmdReqList.MAX_VAR_SIZE + picturePart;
+            }
+            byte[] finalSubarray = new byte[finalMsgLength];
+            Buffer.BlockCopy(picture, amountOfMessages * CmdReqList.MAX_VAR_SIZE, finalSubarray, 0, finalMsgLength);
+            string finalPicturePart = System.Text.Encoding.UTF8.GetString(finalSubarray);
+            string finalMsgStrLength = finalMsgLength.ToString().PadLeft(4, '0');
+            sendMessage += CmdReqList.HEADER + CmdReqList.PICTURE + finalMsgStrLength + finalPicturePart;
+            return sendMessage;
+        }
+
+        private byte[] GetPictureFromPath()
+        {
+            byte[] myFile = new byte[0];
+            while (myFile.Length==0)
             {
                 string imgPath = Console.ReadLine();
-                int imgByteLength = 0;
                 if (File.Exists(imgPath))
                 {
-                    if (imgPath.EndsWith(".png") || imgPath.EndsWith(".jpg")) { 
-                        byte[] file = File.ReadAllBytes(imgPath);
-                        imgByteLength = file.Length;
-                        strImage = System.Text.Encoding.Default.GetString(file);
+                    if (imgPath.EndsWith(".png") || imgPath.EndsWith(".jpg")) {
+                        myFile = File.ReadAllBytes(imgPath);
                     }
                     else
                     {
@@ -45,16 +63,15 @@ namespace GameClient.Commands
                 {
                     Console.WriteLine("Inexistent or Invalid File Path, please re-enter:");
                 }
-                int prevDataLength = System.Text.ASCIIEncoding.Unicode.GetByteCount(prevData);
-                if (prevDataLength+imgByteLength > CmdReqList.MAX_VAR_SIZE)
+                /*if (prevDataLength+imgByteLength > CmdReqList.MAX_VAR_SIZE)
                 {
                     Console.WriteLine("File too large, please select another file:");
                     strImage = "";
 
-                }
+                }*/
 
             }
-            return strImage;
+            return myFile;
         }
 
     }
