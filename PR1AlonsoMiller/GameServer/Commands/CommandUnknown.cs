@@ -11,10 +11,10 @@ namespace GameServer.Commands
         public CommandUnknown() : base(ServerCmd.UNKNOWN)
         {
         }
-        public override string Run()
+        public override byte[] Run()
         {
             Console.WriteLine("Invalid Command");
-            return "Error";
+            return Encoding.UTF8.GetBytes("Error");
         }
 
     }

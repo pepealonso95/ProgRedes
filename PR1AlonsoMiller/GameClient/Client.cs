@@ -53,13 +53,15 @@ namespace GameClient
             try { 
             while (stream.CanWrite&& isConnected)
             {
+                byte[] cmdByte = new byte[0];
                 string command = "";
                 while ((command == "" || command == "Error")&&isConnected)
                 {
                     if (command == "Error")
                         PrintCommands();
                     if (!expectingResult)
-                        command = Request();
+                        cmdByte = Request();
+                        command = Encoding.UTF8.GetString(cmdByte);
                     }
                 if (command == "Exit"||!isConnected)
                 {
@@ -67,8 +69,7 @@ namespace GameClient
                 }
                 else
                     {
-                    byte[] buffer = Encoding.UTF8.GetBytes(command);
-                    stream.Write(buffer, 0, buffer.Length);
+                    stream.Write(cmdByte, 0, cmdByte.Length);
                     expectingResult = true;
                     }
                 }
@@ -143,7 +144,7 @@ namespace GameClient
                 expectingResult = false;
         }
 
-        public string Request()
+        public byte[] Request()
         {
             
             Console.WriteLine("Enter Command:");
@@ -153,7 +154,7 @@ namespace GameClient
             {
                 return command.Run();
             }
-            return "Exit";
+            return new byte[0];
         }
 
 

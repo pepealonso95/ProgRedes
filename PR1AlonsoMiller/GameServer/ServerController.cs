@@ -49,7 +49,7 @@ namespace GameServer
             Console.WriteLine("Enter Command:");
             string enteredValue = Console.ReadLine();
             Command command = interpreter.InterpretRequest(enteredValue);
-            return command.Run();
+            return Encoding.UTF8.GetString(command.Run());
         }
     }
 }

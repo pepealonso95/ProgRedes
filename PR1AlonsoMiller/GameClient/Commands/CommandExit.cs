@@ -1,4 +1,5 @@
 ﻿using GameComm;
+using System.Text;
 
 namespace GameClient.Commands
 {
@@ -8,10 +9,10 @@ namespace GameClient.Commands
         public CommandExit() : base(RequestCmd.EXIT)
         {
         }
-        public override string Run()
+        public override byte[] Run()
         {
             
-            return "Exit";
+            return Encoding.UTF8.GetBytes("Exit");
         }
         
 

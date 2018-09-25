@@ -14,12 +14,12 @@ namespace GameServer.Commands
         {
         }
 
-        public override string Run()
+        public override byte[] Run()
         {
             Console.WriteLine("Match started, cannot enter commands while match is in progress");
             Match.StartMatch();
             Console.WriteLine("Match Finished");
-            return "Ok";
+            return Encoding.UTF8.GetBytes("Ok");
         }
         
 

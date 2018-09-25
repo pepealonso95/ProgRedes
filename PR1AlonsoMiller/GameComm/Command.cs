@@ -42,7 +42,7 @@ namespace GameComm
             Server = server;
         }
 
-        public abstract string Run();
+        public abstract byte[] Run();
 
         public string EnterValidLengthString()
         {

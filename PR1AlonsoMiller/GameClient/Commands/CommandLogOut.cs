@@ -1,4 +1,5 @@
 ﻿using GameComm;
+using System.Text;
 
 namespace GameClient.Commands
 {
@@ -8,9 +9,9 @@ namespace GameClient.Commands
         public CommandLogOut() : base(RequestCmd.LOGOUT)
         {
         }
-        public override string Run()
+        public override byte[] Run()
         {
-            return CmdReqList.HEADER + CmdReqList.LOGOUT + CmdReqList.NO_VAR;
+            return Encoding.UTF8.GetBytes(CmdReqList.HEADER + CmdReqList.LOGOUT + CmdReqList.NO_VAR);
         }
         
 

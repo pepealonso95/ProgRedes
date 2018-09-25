@@ -1,5 +1,6 @@
 ﻿using GameComm;
 using System;
+using System.Text;
 
 namespace GameClient.Commands
 {
@@ -9,15 +10,15 @@ namespace GameClient.Commands
         public CommandSelect() : base(RequestCmd.SELECTCHARACTER)
         {
         }
-        public override string Run()
+        public override byte[] Run()
         {
             string header = CmdReqList.HEADER + CmdReqList.SELECTCHARACTER;
             PrintAvailableCharacters();
             Console.WriteLine("Enter Character Selection:");
             string character = EnterValidCharacter();
-            int length = System.Text.Encoding.UTF8.GetByteCount(character);
+            int length = Encoding.UTF8.GetByteCount(character);
             string strLength = length.ToString().PadLeft(4, '0');
-            return header + strLength + character;
+            return Encoding.UTF8.GetBytes(header + strLength + character);
         }
 
         private string EnterValidCharacter()

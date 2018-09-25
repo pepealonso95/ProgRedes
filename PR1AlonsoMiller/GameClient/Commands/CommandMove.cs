@@ -1,5 +1,6 @@
 ﻿using GameComm;
 using System;
+using System.Text;
 
 namespace GameClient.Commands
 {
@@ -9,7 +10,7 @@ namespace GameClient.Commands
         public CommandMove() : base(RequestCmd.MOVE)
         {
         }
-        public override string Run()
+        public override byte[] Run()
         {
             string header = CmdReqList.HEADER + CmdReqList.MOVECHARACTER;
             PrintAvailableDirections();
@@ -27,7 +28,7 @@ namespace GameClient.Commands
             }
             int length = System.Text.Encoding.UTF8.GetByteCount(move);
             string strLength = length.ToString().PadLeft(4, '0');
-            return header + strLength + move;
+            return Encoding.UTF8.GetBytes(header + strLength + move);
         }
 
         private string EnterValidDirection()

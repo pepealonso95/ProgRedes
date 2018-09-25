@@ -13,7 +13,7 @@ namespace GameServer.Commands
         public CommandShowRegistered() : base(ServerCmd.SHOWREGISTERED)
         {
         }
-        public override string Run()
+        public override byte[] Run()
         {
             List<Player> players = PlayerList.GetInstance();
             if (players.Count == 0)
@@ -24,7 +24,7 @@ namespace GameServer.Commands
             {
                 Console.WriteLine(player.ToString());
             }
-            return "Ok";
+            return Encoding.UTF8.GetBytes("Ok");
         }
         
 

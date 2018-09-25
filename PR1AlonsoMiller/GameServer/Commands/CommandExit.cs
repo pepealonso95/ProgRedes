@@ -14,9 +14,9 @@ namespace GameServer.Commands
         public CommandExit() : base(ServerCmd.EXIT)
         {
         }
-        public override string Run()
+        public override byte[] Run()
         {
-            return "Exit";
+            return Encoding.UTF8.GetBytes("Exit");
         }
         
 

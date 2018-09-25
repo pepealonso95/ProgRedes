@@ -1,4 +1,5 @@
 ﻿using GameComm;
+using System.Text;
 
 namespace GameClient.Commands
 {
@@ -8,11 +9,11 @@ namespace GameClient.Commands
         public CommandJoin() : base(RequestCmd.JOINMATCH)
         {
         }
-        public override string Run()
+        public override byte[] Run()
         {
 
             string cmd = CmdReqList.HEADER + CmdReqList.JOINMATCH+CmdReqList.NO_VAR;
-            return cmd;
+            return Encoding.UTF8.GetBytes(cmd);
         }
         
 

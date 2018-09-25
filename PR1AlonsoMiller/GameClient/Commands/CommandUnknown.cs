@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using GameComm;
 
 namespace GameClient.Commands
@@ -9,10 +10,10 @@ namespace GameClient.Commands
         public CommandUnknown() : base(RequestCmd.UNKNOWN)
         {
         }
-        public override string Run()
+        public override byte[] Run()
         {
             Console.WriteLine("Invalid Command");
-            return "Error";
+            return Encoding.UTF8.GetBytes("Error");
         }
 
     }
