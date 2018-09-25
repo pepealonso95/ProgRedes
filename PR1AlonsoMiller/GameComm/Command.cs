@@ -29,7 +29,7 @@ namespace GameComm
     }
     public abstract class Command
     {
-        protected const int VAR_SIZE_LIMIT = 9999;
+        protected const int VAR_SIZE_LIMIT = 99999;
         protected readonly RequestCmd Request;
         protected readonly ServerCmd Server;
 

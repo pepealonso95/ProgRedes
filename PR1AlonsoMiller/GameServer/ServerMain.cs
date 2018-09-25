@@ -106,7 +106,7 @@ namespace GameServer
         {
             string header = CmdResList.HEADER + CmdResList.BROADCAST;
             int length = System.Text.Encoding.UTF8.GetByteCount(message);
-            string strLength = length.ToString().PadLeft(4, '0');
+            string strLength = length.ToString().PadLeft(5, '0');
             string broadcast = header + strLength + message;
             byte[] buffer = Encoding.UTF8.GetBytes(broadcast);
             Monitor.Enter(useLock);

@@ -17,7 +17,7 @@ namespace GameClient.Commands
             Console.WriteLine("Enter Character Selection:");
             string character = EnterValidCharacter();
             int length = Encoding.UTF8.GetByteCount(character);
-            string strLength = length.ToString().PadLeft(4, '0');
+            string strLength = length.ToString().PadLeft(5, '0');
             return Encoding.UTF8.GetBytes(header + strLength + character);
         }
 

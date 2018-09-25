@@ -116,7 +116,7 @@ namespace GameServer
         {
             if (expectedImgFiles > 0)
             {
-                int length = Int32.Parse(buffer.Substring(5, 4));
+                int length = Int32.Parse(buffer.Substring(5, 5));
                 byte[] data = new byte[length];
                 RecieveStream(data);
                 registeringImg += Encoding.UTF8.GetString(data);
@@ -137,7 +137,7 @@ namespace GameServer
 
         private void LoginPlayer(string buffer)
         {
-            int length = Int32.Parse(buffer.Substring(5, 4));
+            int length = Int32.Parse(buffer.Substring(5, 5));
             byte[] data = new byte[length];
             RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
@@ -186,7 +186,7 @@ namespace GameServer
                 ReturnError(CmdResList.INVALID_WHILE_PLAYING);
                 return;
             }
-            int length = Int32.Parse(buffer.Substring(5, 4));
+            int length = Int32.Parse(buffer.Substring(5, 5));
             byte[] data = new byte[length];
             RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
@@ -215,7 +215,7 @@ namespace GameServer
                 ReturnError(CmdResList.UNKNOWN);
                 return;
             }
-            string strLength = length.ToString().PadLeft(4, '0');
+            string strLength = length.ToString().PadLeft(5, '0');
             byte[] send = Encoding.UTF8.GetBytes(header + strLength + message);
             stream.Write(send, 0, send.Length);
         }
@@ -327,7 +327,7 @@ namespace GameServer
 
         private Character GetCharacter(string buffer)
         {
-            int length = Int32.Parse(buffer.Substring(5, 4));
+            int length = Int32.Parse(buffer.Substring(5, 5));
             byte[] data = new byte[length];
             RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
@@ -403,7 +403,7 @@ namespace GameServer
             }
             else
             {
-                int length = Int32.Parse(buffer.Substring(5, 4));
+                int length = Int32.Parse(buffer.Substring(5, 5));
                 byte[] data = new byte[length];
                 RecieveStream(data);
                 string directions = Encoding.UTF8.GetString(data);

@@ -27,7 +27,7 @@ namespace GameClient.Commands
                 }
             }
             int length = System.Text.Encoding.UTF8.GetByteCount(move);
-            string strLength = length.ToString().PadLeft(4, '0');
+            string strLength = length.ToString().PadLeft(5, '0');
             return Encoding.UTF8.GetBytes(header + strLength + move);
         }
 

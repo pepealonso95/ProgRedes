@@ -16,7 +16,7 @@ namespace GameClient.Commands
             Console.WriteLine("Enter Player Nickname:");
             string nickname = EnterValidLengthString();
             int length = Encoding.UTF8.GetByteCount(nickname);
-            string strLength = length.ToString().PadLeft(4, '0');
+            string strLength = length.ToString().PadLeft(5, '0');
             return Encoding.UTF8.GetBytes(header +strLength + nickname);
         }
         

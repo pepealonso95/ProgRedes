@@ -6,9 +6,9 @@ namespace GameComm
 {
     public static class CmdResList
     {
-        public const int FIXED_LENGTH = 9;
+        public const int FIXED_LENGTH = 10;
 
-        public const string NO_VAR = "0000";
+        public const string NO_VAR = "00000";
 
         public const string HEADER = "RES";
 
