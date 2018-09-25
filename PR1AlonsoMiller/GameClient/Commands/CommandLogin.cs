@@ -12,7 +12,7 @@ namespace GameClient.Commands
         }
         public override byte[] Run()
         {
-            string header = CmdReqList.HEADER + CmdReqList.LOGIN;
+            string header =  CmdReqList.LOGIN;
             Console.WriteLine("Enter Player Nickname:");
             string nickname = EnterValidLengthString();
             int length = Encoding.UTF8.GetByteCount(nickname);

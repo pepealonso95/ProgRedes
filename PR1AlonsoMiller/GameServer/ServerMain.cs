@@ -42,7 +42,7 @@ namespace GameServer
                     clients.Add(client);
                     if (clients.Count > MAX_PLAYERS_CONNECTED)
                     {
-                        string response = CmdResList.HEADER + CmdResList.SERVERFULL + CmdResList.NO_VAR;
+                        string response =  CmdResList.SERVERFULL + CmdResList.NO_VAR;
                         byte[] send = Encoding.UTF8.GetBytes(response);
                         client.GetStream().Write(send, 0, CmdResList.FIXED_LENGTH);
                         client.GetStream().Close();
@@ -97,14 +97,14 @@ namespace GameServer
 
         private static void ExitConnection(TcpClient client)
         {
-            string header = CmdResList.HEADER + CmdResList.EXIT+CmdResList.NO_VAR;
+            string header = CmdResList.EXIT+CmdResList.NO_VAR;
             byte[] buffer = Encoding.UTF8.GetBytes(header);
             client.GetStream().Write(buffer, 0, buffer.Length);
         }
 
         public static void BroadcastMessage(string message)
         {
-            string header = CmdResList.HEADER + CmdResList.BROADCAST;
+            string header = CmdResList.BROADCAST;
             int length = System.Text.Encoding.UTF8.GetByteCount(message);
             string strLength = length.ToString().PadLeft(5, '0');
             string broadcast = header + strLength + message;

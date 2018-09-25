@@ -12,7 +12,7 @@ namespace GameClient.Commands
         public override byte[] Run()
         {
 
-            string cmd = CmdReqList.HEADER + CmdReqList.ATTACKCHARACTER+CmdReqList.NO_VAR;
+            string cmd = CmdReqList.ATTACKCHARACTER+CmdReqList.NO_VAR;
             return Encoding.UTF8.GetBytes(cmd);
         }
         

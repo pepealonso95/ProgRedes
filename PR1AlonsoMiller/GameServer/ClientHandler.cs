@@ -43,7 +43,7 @@ namespace GameServer
                     RecieveStream(buffer);
                     string strBuffer = Encoding.UTF8.GetString(buffer);
                     string header = strBuffer.Substring(0, 3);
-                    if (header.Equals("REQ"))
+                    if (Int32.Parse(header)<100)
                     {
                         HandleRequest(strBuffer);
                     }
@@ -64,7 +64,7 @@ namespace GameServer
         
         private void HandleRequest(string buffer)
         {
-            string strCmd = buffer.Substring(3, 2);
+            string strCmd = buffer.Substring(0, 3);
             if(expectedImgFiles!=0&& strCmd != CmdReqList.PICTURE)
             {
                 ReturnError(CmdResList.EXPECTING_IMG);
@@ -116,7 +116,7 @@ namespace GameServer
         {
             if (expectedImgFiles > 0)
             {
-                int length = Int32.Parse(buffer.Substring(5, 5));
+                int length = Int32.Parse(buffer.Substring(3, 5));
                 byte[] data = new byte[length];
                 RecieveStream(data);
                 registeringImg += Encoding.UTF8.GetString(data);
@@ -137,7 +137,7 @@ namespace GameServer
 
         private void LoginPlayer(string buffer)
         {
-            int length = Int32.Parse(buffer.Substring(5, 5));
+            int length = Int32.Parse(buffer.Substring(3, 5));
             byte[] data = new byte[length];
             RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
@@ -175,7 +175,7 @@ namespace GameServer
 
         private void ReturnExit()
         {
-            string response = CmdResList.HEADER + CmdResList.EXIT + CmdResList.NO_VAR;
+            string response = CmdResList.EXIT + CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
             stream.Write(send, 0, CmdResList.FIXED_LENGTH);
         }
@@ -186,7 +186,7 @@ namespace GameServer
                 ReturnError(CmdResList.INVALID_WHILE_PLAYING);
                 return;
             }
-            int length = Int32.Parse(buffer.Substring(5, 5));
+            int length = Int32.Parse(buffer.Substring(3, 5));
             byte[] data = new byte[length];
             RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
@@ -202,13 +202,13 @@ namespace GameServer
         
         private void ReturnOk()
         {
-            string response = CmdResList.HEADER+CmdResList.OK+CmdResList.NO_VAR;
+            string response = CmdResList.OK+CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
             stream.Write(send, 0, CmdResList.FIXED_LENGTH);
         }
         private void ReturnOkWithMessage(string message)
         {
-            string header = CmdResList.HEADER + CmdResList.OK;
+            string header =  CmdResList.OK;
             int length = System.Text.Encoding.UTF8.GetByteCount(message);
             if (length > CmdReqList.MAX_VAR_SIZE)
             {
@@ -222,7 +222,7 @@ namespace GameServer
 
         private void ReturnError(string error)
         {
-            string response = CmdResList.HEADER + error + CmdResList.NO_VAR;
+            string response =  error + CmdResList.NO_VAR;
             byte[] send = Encoding.UTF8.GetBytes(response);
             stream.Write(send, 0, CmdResList.FIXED_LENGTH);
         }
@@ -327,7 +327,7 @@ namespace GameServer
 
         private Character GetCharacter(string buffer)
         {
-            int length = Int32.Parse(buffer.Substring(5, 5));
+            int length = Int32.Parse(buffer.Substring(3, 5));
             byte[] data = new byte[length];
             RecieveStream(data);
             string strData = Encoding.UTF8.GetString(data);
@@ -403,7 +403,7 @@ namespace GameServer
             }
             else
             {
-                int length = Int32.Parse(buffer.Substring(5, 5));
+                int length = Int32.Parse(buffer.Substring(3, 5));
                 byte[] data = new byte[length];
                 RecieveStream(data);
                 string directions = Encoding.UTF8.GetString(data);

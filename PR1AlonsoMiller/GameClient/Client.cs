@@ -97,9 +97,9 @@ namespace GameClient
                     RecieveStream(buffer);
                     string strBuffer = Encoding.UTF8.GetString(buffer);
                     string header = strBuffer.Substring(0, 3);
-                    if (header.Equals("RES"))
+                    if (Int32.Parse(header) > 99)
                     {
-                        InterpretResponse(strBuffer.Substring(3, 2));
+                        InterpretResponse(strBuffer.Substring(0, 3));
                         if (isConnected)
                             PrintServerResponse(strBuffer);
                     }
@@ -130,7 +130,7 @@ namespace GameClient
         {
             if (strBuffer.Length > CmdResList.FIXED_LENGTH)
             {
-                string strVarLength = strBuffer.Substring(5, 5);
+                string strVarLength = strBuffer.Substring(3, 5);
                 int length = Int32.Parse(strVarLength);
                 if (length > 0)
                 {
@@ -140,7 +140,7 @@ namespace GameClient
                     Console.WriteLine(response);
                 }
             }
-            if (strBuffer.Substring(3, 2) != CmdResList.BROADCAST)
+            if (strBuffer.Substring(0, 3) != CmdResList.BROADCAST)
                 expectingResult = false;
         }
 

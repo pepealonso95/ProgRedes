@@ -12,7 +12,7 @@ namespace GameClient.Commands
         }
         public override byte[] Run()
         {
-            string header = CmdReqList.HEADER + CmdReqList.SELECTCHARACTER;
+            string header =  CmdReqList.SELECTCHARACTER;
             PrintAvailableCharacters();
             Console.WriteLine("Enter Character Selection:");
             string character = EnterValidCharacter();

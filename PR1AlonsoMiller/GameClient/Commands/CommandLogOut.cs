@@ -11,7 +11,7 @@ namespace GameClient.Commands
         }
         public override byte[] Run()
         {
-            return Encoding.UTF8.GetBytes(CmdReqList.HEADER + CmdReqList.LOGOUT + CmdReqList.NO_VAR);
+            return Encoding.UTF8.GetBytes( CmdReqList.LOGOUT + CmdReqList.NO_VAR);
         }
         
 

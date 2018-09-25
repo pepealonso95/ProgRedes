@@ -12,7 +12,7 @@ namespace GameClient.Commands
         }
         public override byte[] Run()
         {
-            string header = CmdReqList.HEADER + CmdReqList.MOVECHARACTER;
+            string header =  CmdReqList.MOVECHARACTER;
             PrintAvailableDirections();
             string move = "";
             while (move.Equals(""))

@@ -29,19 +29,19 @@ namespace GameClient.Commands
             string composedMessage = nickname + CmdReqList.NAMEPICSEPARATOR + (amountOfMessages+1);
             int length = Encoding.UTF8.GetByteCount(composedMessage);
             string strLength = length.ToString().PadLeft(5, '0');
-            sendMessage.AddRange(Encoding.UTF8.GetBytes(CmdReqList.HEADER + CmdReqList.REGISTER + strLength + composedMessage));
+            sendMessage.AddRange(Encoding.UTF8.GetBytes( CmdReqList.REGISTER + strLength + composedMessage));
             for (int i = 0; i < amountOfMessages; i++)
             {
                 byte[] subarray = new byte[CmdReqList.MAX_VAR_SIZE];
                 Buffer.BlockCopy(picture, i * CmdReqList.MAX_VAR_SIZE, subarray, 0, CmdReqList.MAX_VAR_SIZE);
                 string msgStrLength = CmdReqList.MAX_VAR_SIZE.ToString().PadLeft(5, '0');
-                sendMessage.AddRange(Encoding.UTF8.GetBytes(CmdReqList.HEADER + CmdReqList.PICTURE + msgStrLength));
+                sendMessage.AddRange(Encoding.UTF8.GetBytes( CmdReqList.PICTURE + msgStrLength));
                 sendMessage.AddRange(subarray);
             }
             byte[] finalSubarray = new byte[finalMsgLength];
             Buffer.BlockCopy(picture, amountOfMessages * CmdReqList.MAX_VAR_SIZE, finalSubarray, 0, finalMsgLength);
             string finalMsgStrLength = finalMsgLength.ToString().PadLeft(5, '0');
-            sendMessage.AddRange(Encoding.UTF8.GetBytes(CmdReqList.HEADER + CmdReqList.PICTURE + finalMsgStrLength));
+            sendMessage.AddRange(Encoding.UTF8.GetBytes( CmdReqList.PICTURE + finalMsgStrLength));
             sendMessage.AddRange(finalSubarray);
             return (byte[])sendMessage.ToArray(typeof(byte));
         }
