@@ -43,7 +43,7 @@ namespace GameServer
                     RecieveStream(buffer);
                     string strBuffer = Encoding.UTF8.GetString(buffer);
                     string header = strBuffer.Substring(0, 3);
-                    if (Int32.Parse(header)<100)
+                    if (Int32.Parse(header)<CmdReqList.REQLIMIT)
                     {
                         HandleRequest(strBuffer);
                     }

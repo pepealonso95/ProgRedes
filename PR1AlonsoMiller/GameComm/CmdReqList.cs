@@ -7,6 +7,9 @@ namespace GameComm
     public static class CmdReqList
     {
         public const int MAX_VAR_SIZE = 99999;
+
+        public const int REQLIMIT = 100;
+
         public const string NAMEPICSEPARATOR = "</%#?>";
         public const string IMAGEREQSEPARATOR = "<&/$·>";
 

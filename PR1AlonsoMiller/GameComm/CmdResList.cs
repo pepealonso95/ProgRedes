@@ -8,8 +8,9 @@ namespace GameComm
     {
         public const int FIXED_LENGTH = 8;
 
-        public const string NO_VAR = "00000";
+        public const int RESLIMIT = 99;
 
+        public const string NO_VAR = "00000";
 
         public const string OK = "100";
 
@@ -43,5 +44,6 @@ namespace GameComm
 
         public const string BROADCAST = "198";
         public const string EXIT = "199";
+
     }
 }

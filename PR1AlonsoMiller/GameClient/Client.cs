@@ -97,7 +97,7 @@ namespace GameClient
                     RecieveStream(buffer);
                     string strBuffer = Encoding.UTF8.GetString(buffer);
                     string header = strBuffer.Substring(0, 3);
-                    if (Int32.Parse(header) > 99)
+                    if (Int32.Parse(header) > CmdResList.RESLIMIT)
                     {
                         InterpretResponse(strBuffer.Substring(0, 3));
                         if (isConnected)
