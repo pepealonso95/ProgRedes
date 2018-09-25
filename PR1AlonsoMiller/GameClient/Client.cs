@@ -128,7 +128,7 @@ namespace GameClient
 
         private void PrintServerResponse(string strBuffer)
         {
-            if (strBuffer.Length > 8)
+            if (strBuffer.Length > 9)
             {
                 string strVarLength = strBuffer.Substring(5, 4);
                 int length = Int32.Parse(strVarLength);

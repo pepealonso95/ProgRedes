@@ -126,6 +126,18 @@ namespace GameClient
             {
                 interpretation = "You must select a character first";
             }
+            else if (command == CmdResList.EXPECTING_IMG)
+            {
+                interpretation = "Cant send other data during image transfer";
+            }
+            else if (command == CmdResList.NOT_EXPECTING_IMG)
+            {
+                interpretation = "Cant send image without designating a player register";
+            }
+            else if (command == CmdResList.UNKNOWN)
+            {
+                interpretation = "Unknown error ocurred";
+            }
             else if (command == CmdResList.EXIT)
             {
                 throw new DisconnectedException("Disconnected from server");

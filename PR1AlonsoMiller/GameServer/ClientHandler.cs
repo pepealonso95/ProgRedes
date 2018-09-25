@@ -69,13 +69,13 @@ namespace GameServer
             {
                 ReturnError(CmdResList.EXPECTING_IMG);
             }
-            if(strCmd == CmdReqList.PICTURE)
-            {
-                AddDataToPicture(buffer);
-            }
-            if(strCmd == CmdReqList.EXIT)
+             if(strCmd == CmdReqList.EXIT)
             {
                 throw new DisconnectedException("Close");
+            }
+            else if(strCmd == CmdReqList.PICTURE)
+            {
+                AddDataToPicture(buffer);
             }
             else if (strCmd == CmdReqList.REGISTER)
             {
@@ -104,6 +104,10 @@ namespace GameServer
             else if (strCmd == CmdReqList.ATTACKCHARACTER)
             {
                 AttackCharacter();
+            }
+            else
+            {
+                ReturnError(CmdResList.UNKNOWN);
             }
 
         }
