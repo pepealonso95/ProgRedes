@@ -237,8 +237,7 @@ namespace GameServer
                     var pos = stream.Read(buffer, 0, buffer.Length);
                     if (pos == 0)
                     {
-                        client.Close();
-                        isConnected = false;
+                        throw new DisconnectedException("Lost Connection");
                     }
                     recieved += pos;
                 }

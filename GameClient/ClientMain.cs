@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Configuration;
@@ -9,14 +10,11 @@ namespace GameClient
     {
         static void Main(string[] args)
         {
-            IConfiguration config = new ConfigurationBuilder()
-            .AddJsonFile("installConfig.json", optional: true, reloadOnChange: true)
-            .Build();
             TcpClient client = new TcpClient();
             Console.WriteLine("Connecting");
             while (!client.Connected)
             {
-                client.Connect(IPAddress.Parse(config.GetSection("serverip").Value), 2000);
+                client.Connect(IPAddress.Parse(ConfigurationManager.AppSettings["serverip"]), Int32.Parse(ConfigurationManager.AppSettings["serverport"]));
             }
             Console.WriteLine("Connected");
             new Client().Start(client);

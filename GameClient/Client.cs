@@ -128,7 +128,7 @@ namespace GameClient
 
         private void PrintServerResponse(string strBuffer)
         {
-            if (strBuffer.Length > CmdResList.FIXED_LENGTH)
+            if (strBuffer.Length >= CmdResList.FIXED_LENGTH)
             {
                 string strVarLength = strBuffer.Substring(3, 5);
                 int length = Int32.Parse(strVarLength);
@@ -168,8 +168,7 @@ namespace GameClient
                     var pos = stream.Read(buffer, 0, buffer.Length);
                     if (pos == 0)
                     {
-                        socket.Close();
-                        isConnected = false;
+                        throw new DisconnectedException("Lost Connection");
                     }
                     recieved += pos;
                 }

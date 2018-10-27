@@ -1,6 +1,7 @@
 ﻿using GameComm;
 using System;
 using System.Linq;
+using System.Configuration;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -20,13 +21,10 @@ namespace GameServer
         private static TcpListener server;
         public static void Main(string[] args)
         {
-            IConfiguration config = new ConfigurationBuilder()
-            .AddJsonFile("installConfig.json", optional: true, reloadOnChange: true)
-            .Build();
-            IPEndPoint ipthis = new IPEndPoint(IPAddress.Parse(config.GetSection("serverip").Value), 2000);
+            IPEndPoint ipthis = new IPEndPoint(IPAddress.Parse(ConfigurationManager.AppSettings["serverip"]), Int32.Parse(ConfigurationManager.AppSettings["serverport"]));
             server = new TcpListener(ipthis);
             Match.Instance();
-            Match.duration = config.GetSection("matchduration").Value;
+            Match.duration = ConfigurationManager.AppSettings["matchduration"];
             clients = new List<TcpClient>();
             server.Start(Match.MAX_ACTIVE_PLAYERS);
             isConnected = true;

@@ -10,7 +10,7 @@ namespace GameComm
 
         public const int REQLIMIT = 100;
 
-        public const string NAMEPICSEPARATOR = "</%#?>";
+        public const char NAMEPICSEPARATOR = '§';
         public const string IMAGEREQSEPARATOR = "<&/$·>";
 
         public const string NO_VAR = "00000";

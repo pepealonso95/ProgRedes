@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using GameServer.Log;
 
 namespace GameServer
 {
@@ -19,6 +20,7 @@ namespace GameServer
         private List<PlayerPosition> Playing = new List<PlayerPosition>();
         private Character[,] Terrain = new Character[8,8];
         private List<Player> DeadPlayers = new List<Player>();
+        public Logger logger = new Logger();
         private static readonly object turnLock = new object();
 
         private Match() { }
@@ -46,6 +48,12 @@ namespace GameServer
             playerCount = 0;
             DeadPlayers = new List<Player>();
             Playing  = new List<PlayerPosition>();
+            LogEntry log = new LogEntry()
+            {
+                User = "START",
+                Action = "Match Started"
+            };
+            logger.LogNewEntry(log);
         }
 
         public static void StartMatch()
@@ -77,6 +85,13 @@ namespace GameServer
             {
                 result = "NOBODY WINS";
             }
+            LogEntry entry = new LogEntry()
+            {
+                User = "Match Finished",
+                Action = result
+            };
+            logger.LogNewEntry(entry);
+            logger.UpdateQueue();
             ServerMain.BroadcastMessage(result);
         }
 
@@ -124,6 +139,12 @@ namespace GameServer
                     Playing.Add(playerToJoin);
                     playerCount++;
                     result = "Succesfully added";
+                    LogEntry log = new LogEntry()
+                    {
+                        User = playerToJoin.player.Nickname,
+                        Action = "Joined"
+                    };
+                    logger.LogNewEntry(log);
                 }
             }
             Monitor.Exit(turnLock);
@@ -164,6 +185,12 @@ namespace GameServer
                 else
                 {
                     result = AddToTerrain(character);
+                    LogEntry log = new LogEntry()
+                    {
+                        User = character.player.Nickname,
+                        Action = "Entered " + result
+                    };
+                    logger.LogNewEntry(log);
                 }
             }
             Monitor.Exit(turnLock);
@@ -289,6 +316,12 @@ namespace GameServer
                                 }
                             }
                             response += InformNearCharacters(playingChar);
+                            LogEntry log = new LogEntry()
+                            {
+                                User = playingChar.player.Nickname,
+                                Action = "Moved to vertical:" + playingChar.x + " horizontal:" + playingChar.y
+                            };
+                            logger.LogNewEntry(log);
                         }
                     }
                 }
