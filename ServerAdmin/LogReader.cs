@@ -25,6 +25,7 @@ namespace ServerAdmin
                 if (cmd.Equals("log"))
                 {
                     ReadMessages();
+                    ResendMessages();
                 }
                 else if (cmd.Equals("exit"))
                 {
@@ -43,10 +44,10 @@ namespace ServerAdmin
                 {
                     var messageQueue = new MessageQueue(@".\private$\matchLog");
                     messageQueue.Formatter = new BinaryMessageFormatter();
-                    Message message = messageQueue.Receive();
-                    LogEntry entry = (LogEntry)message.Body;
-                    entries.Push(entry);
-                    Console.WriteLine(entry.User + " -> " + entry.Action);
+                        Message message = messageQueue.Receive(new TimeSpan(0,0,10));
+                        LogEntry entry = (LogEntry)message.Body;
+                        entries.Push(entry);
+                        Console.WriteLine(entry.User + " -> " + entry.Action);
                 }
                 catch (Exception ex)
                 {
