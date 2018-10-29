@@ -12,10 +12,12 @@ namespace GameServer
         private static readonly object useLock = new object();
 
         private static List<Player> players;
+        private static List<PlayerScore> scores;
 
         private PlayerList()
         {
             players = new List<Player>();
+            scores = new List<PlayerScore>();
         }
 
         public static List<Player> GetInstance()
@@ -24,6 +26,7 @@ namespace GameServer
             if (players == null)
             {
                 players = new List<Player>();
+                scores = new List<PlayerScore>();
             }
             Monitor.Exit(useLock);
             return players;
@@ -93,6 +96,31 @@ namespace GameServer
                 imgChange.Image = Encoding.ASCII.GetBytes(registeringImg);
             }
             Monitor.Exit(useLock);
+        }
+
+        public static void AddScore(Character character, bool win)
+        {
+            string role = GetRole(character.GetAttack());
+            PlayerScore score = new PlayerScore()
+            {
+                User = character.player.Nickname,
+                Survived = win,
+                Score = character.player.Score,
+                Role = role,
+                Date = DateTime.Now
+            };
+            scores.Add(score);
+        }
+
+        private static string GetRole(int attack)
+        {
+            if (attack == RoleValues.MONSTER_ATTACK)
+            {
+                return "MONSTER";
+            }
+            else{
+                return "SURVIVOR";
+            }
         }
     }
 }

@@ -43,5 +43,6 @@ namespace Domain
                 return this.player.Equals(((Character)obj).player);
             }
         }
+        
     }
 }

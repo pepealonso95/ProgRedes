@@ -13,11 +13,13 @@ namespace Domain
         public byte[] Image { get; set; }
 
         private bool loggedIn;
+        public int Score { get; set; }
 
         public Player(string nickname)
         {
             this.Nickname = nickname;
             this.loggedIn = false;
+            this.Score = 0;
         }
 
         public Player(string nickname, byte[] image)
@@ -25,6 +27,7 @@ namespace Domain
             this.Nickname = nickname;
             this.Image = image;
             this.loggedIn = false;
+            this.Score = 0;
         }
 
         public void LogIn()

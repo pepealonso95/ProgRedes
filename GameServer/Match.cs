@@ -12,6 +12,8 @@ namespace GameServer
     public class Match
     {
         public const int MAX_ACTIVE_PLAYERS = 32;
+        public const int WIN_POINTS = 15;
+        public const int KILL_POINTS = 5;
         private string result = "No result";
         private static Match instance;
         public static string duration = "180000";
@@ -19,7 +21,7 @@ namespace GameServer
         private int playerCount = 0;
         private List<PlayerPosition> Playing = new List<PlayerPosition>();
         private Character[,] Terrain = new Character[8,8];
-        private List<Player> DeadPlayers = new List<Player>();
+        private List<Character> DeadPlayers = new List<Character>();
         public Logger logger = new Logger();
         private static readonly object turnLock = new object();
 
@@ -46,7 +48,7 @@ namespace GameServer
             }
             result = "No result";
             playerCount = 0;
-            DeadPlayers = new List<Player>();
+            DeadPlayers = new List<Character>();
             Playing  = new List<PlayerPosition>();
             LogEntry log = new LogEntry()
             {
@@ -71,7 +73,8 @@ namespace GameServer
         private void Results()
         {
             bool survivorsAlive = false;
-            List<Player> monsters = new List<Player>();
+            bool monsterWon = false;
+            List<Monster> monsters = new List<Monster>();
             FindAllInTerrain(out survivorsAlive, monsters);
             if (survivorsAlive)
             {
@@ -79,12 +82,15 @@ namespace GameServer
             }
             else if (monsters.Count == 1)
             {
-                result = monsters[0].Nickname + " WINS!";
+                result = monsters[0].player.Nickname + " WINS!";
+                monsters[0].player.Score+=WIN_POINTS;
+                monsterWon = true;
             }
             else
             {
                 result = "NOBODY WINS";
             }
+            AddScores(survivorsAlive, monsterWon);
             LogEntry entry = new LogEntry()
             {
                 User = "Match Finished",
@@ -95,7 +101,30 @@ namespace GameServer
             ServerMain.BroadcastMessage(result);
         }
 
-        private void FindAllInTerrain(out bool survivorsAlive , List<Player> monsters)
+
+        private void AddScores(bool survivorsWin, bool monsterWon)
+        {
+            for (int i = 0; i < Terrain.GetLength(0); i++)
+            {
+                for (int j = 0; j < Terrain.GetLength(1); j++)
+                {
+                    if (Terrain[i, j].GetAttack() == RoleValues.SURVIVOR_ATTACK)
+                    {
+                        PlayerList.AddScore(Terrain[i, j], survivorsWin);
+                    }
+                    else if (Terrain[i, j].GetAttack() == RoleValues.MONSTER_ATTACK)
+                    {
+                        PlayerList.AddScore(Terrain[i, j], monsterWon);
+                    }
+                }
+            }
+            foreach (Character deadChar in DeadPlayers)
+            {
+                PlayerList.AddScore(deadChar, false);
+            }
+        }
+
+        private void FindAllInTerrain(out bool survivorsAlive , List<Monster> monsters)
         {
             survivorsAlive = false;
             for (int i = 0; i < Terrain.GetLength(0); i++)
@@ -105,11 +134,11 @@ namespace GameServer
                     if (Terrain[i, j].GetAttack() == RoleValues.SURVIVOR_ATTACK)
                     {
                         survivorsAlive = true;
-                        return;
+                        Terrain[i, j].player.Score += WIN_POINTS;
                     }
                     else if (Terrain[i, j].GetAttack() == RoleValues.MONSTER_ATTACK)
                     {
-                        monsters.Add(Terrain[i, j].player);
+                        monsters.Add((Monster)Terrain[i, j]);
                     }
                 }
             }
@@ -138,6 +167,7 @@ namespace GameServer
                 {
                     Playing.Add(playerToJoin);
                     playerCount++;
+                    playerToJoin.player.Score = 0;
                     result = "Succesfully added";
                     LogEntry log = new LogEntry()
                     {
@@ -161,7 +191,7 @@ namespace GameServer
             {
                 return CmdResList.MATCHFINISHED;
             }
-            if (DeadPlayers.Contains(character.player))
+            if (DeadPlayers.Contains(character))
             {
                 return CmdResList.PLAYERDEAD;
             }
@@ -174,7 +204,7 @@ namespace GameServer
                 {
                     result = CmdResList.NOTINMATCH;
                 }
-                else if (DeadPlayers.Contains(character.player))
+                else if (DeadPlayers.Contains(character))
                 {
                     result = CmdResList.PLAYERDEAD;
                 }
@@ -294,7 +324,7 @@ namespace GameServer
                     {
                         response = CmdResList.DIDNT_SELECT;
                     }
-                    else if (DeadPlayers.Contains(player))
+                    else if (DeadPlayers.Where(c=>c.player.Equals(player)).Count()>0)
                     {
                         response = CmdResList.PLAYERDEAD;
                     }
@@ -430,7 +460,7 @@ namespace GameServer
                     {
                         response = CmdResList.DIDNT_SELECT;
                     }
-                    else if (DeadPlayers.Contains(player))
+                    else if (DeadPlayers.Where(c=>c.player.Equals(player)).Count()>0)
                     {
                         response = CmdResList.PLAYERDEAD;
                     }
@@ -467,6 +497,7 @@ namespace GameServer
                 if (!character.IsAlive())
                 {
                     response += Kill(character.player);
+                    myCharacter.player.Score+=KILL_POINTS;
                 }
                 response += ",";
             }
@@ -490,14 +521,14 @@ namespace GameServer
                 {
                     response = CmdResList.DIDNT_SELECT;
                 }
-                else if (DeadPlayers.Contains(player))
+                else if (DeadPlayers.Where(c=>c.player.Equals(player)).Count()>0)
                 {
                     response = CmdResList.PLAYERDEAD;
                 }
                 else
                 {
+                    DeadPlayers.Add(Terrain[playerToKill.x, playerToKill.y]);
                     Terrain[playerToKill.x, playerToKill.y] = new Survivor();
-                    DeadPlayers.Add(player);
                     response = "Killed (" + player.Nickname + ")";
                 }
                 return response;
@@ -518,7 +549,7 @@ namespace GameServer
             {
                 return;
             }
-            if (DeadPlayers.Contains(player))
+            if (DeadPlayers.Where(c=>c.player.Equals(player)).Count()>0)
             {
                return;
             }
