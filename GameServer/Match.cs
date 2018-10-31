@@ -43,7 +43,7 @@ namespace GameServer
             {
                 for (int j = 0; j < Terrain.GetLength(1); j++)
                 {
-                    Terrain[i, j] = new Survivor();
+                    Terrain[i, j] = new EmptyPos();
                 }
             }
             result = "No result";
@@ -56,6 +56,7 @@ namespace GameServer
                 Action = "Match Started"
             };
             logger.LogNewEntry(log);
+            PlayerList.NextMatch();
         }
 
         public static void StartMatch()
@@ -281,7 +282,7 @@ namespace GameServer
 
         private void CheckCharacterRight(int row, int column, List<Character> adjacentCharacters)
         {
-            if (column + 1 < Terrain.Length && PositionIsOccupied(Terrain[row, column + 1]))
+            if (column + 1 < Terrain.GetLength(1) && PositionIsOccupied(Terrain[row, column + 1]))
             {
                 adjacentCharacters.Add(Terrain[row, column + 1]);
             }
@@ -297,7 +298,7 @@ namespace GameServer
 
         private void CheckCharacterBelow(int row, int column, List<Character> adjacentCharacters)
         {
-            if (row + 1 < Terrain.Length && PositionIsOccupied(Terrain[row + 1, column]))
+            if (row + 1 < Terrain.GetLength(0) && PositionIsOccupied(Terrain[row + 1, column]))
             {
                 adjacentCharacters.Add(Terrain[row + 1, column]);
             }
@@ -416,7 +417,7 @@ namespace GameServer
 
         private string ValidateMovement(PlayerPosition playingChar, int nextRow, int nextColumn)
         {
-            if (nextRow < 0 || nextRow > Terrain.GetLength(0) || nextColumn < 0 || nextColumn > Terrain.GetLength(1))
+            if (nextRow < 0 || nextRow >= Terrain.GetLength(0) || nextColumn < 0 || nextColumn >= Terrain.GetLength(1))
             {
                 return CmdResList.OUT_OF_BOUNDS;
             }
@@ -427,7 +428,7 @@ namespace GameServer
             else
             {
                 Terrain[nextRow, nextColumn] = Terrain[playingChar.x, playingChar.y];
-                Terrain[playingChar.x, playingChar.y] = new Survivor();
+                Terrain[playingChar.x, playingChar.y] = new EmptyPos();
                 playingChar.x = nextRow;
                 playingChar.y = nextColumn;
                 return "Character in vertical:" + nextRow + " horizontal:" + nextColumn;
@@ -436,7 +437,7 @@ namespace GameServer
 
         private bool PositionIsOccupied(Character position)
         {
-            return position.GetAttack() != 0;
+            return position.GetAttack() > 0;
         }
 
         public string Attack(Player player)
@@ -528,7 +529,7 @@ namespace GameServer
                 else
                 {
                     DeadPlayers.Add(Terrain[playerToKill.x, playerToKill.y]);
-                    Terrain[playerToKill.x, playerToKill.y] = new Survivor();
+                    Terrain[playerToKill.x, playerToKill.y] = new EmptyPos();
                     response = "Killed (" + player.Nickname + ")";
                 }
                 return response;

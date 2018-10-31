@@ -3,16 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using System.Messaging;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting;
 using GameComm;
+using System.Collections;
+using System.Runtime.Serialization.Formatters;
 
 namespace ServerAdmin
 {
-    public class LogReader
+    public class ServerAdminMain
     {
         private static Stack<LogEntry> entries;
         public static void Main(string[] args)
         {
+            CrearInfrastructuraRemoting();
+            string destintatario;
+            string mensaje;
+
+            Console.WriteLine("Obtener referencia al server.");
+            IPlayerList serverChat = (IPlayerList)Activator.GetObject(
+                                                    typeof(IPlayerList),
+                                                    "tcp://"+ConfigurationManager.AppSettings["serverip"]+":"+ ConfigurationManager.AppSettings["serverport"] + "/ServerChat");
+
             entries = new Stack<LogEntry>();
             bool exit = false;
             Console.WriteLine("Available Commands:");
@@ -74,6 +89,18 @@ namespace ServerAdmin
                     throw new Exception(ex.Message);
                 }
             }
+        }
+
+
+        private static void CrearInfrastructuraRemoting()
+        {
+            IDictionary props = new Hashtable();
+            props["port"] = 0;
+            BinaryServerFormatterSinkProvider serverProvider = new BinaryServerFormatterSinkProvider();
+            new TcpChannel(props, null, serverProvider);
+            serverProvider.TypeFilterLevel = TypeFilterLevel.Full;
+            TcpChannel chan = new TcpChannel(props, null, serverProvider);
+            ChannelServices.RegisterChannel(chan, false);
         }
     }
 }

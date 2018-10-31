@@ -13,7 +13,7 @@ namespace GameServer
 
         private static List<Player> players;
         private static List<PlayerScore> scores;
-
+        private static int match;
         private PlayerList()
         {
             players = new List<Player>();
@@ -26,10 +26,22 @@ namespace GameServer
             if (players == null)
             {
                 players = new List<Player>();
-                scores = new List<PlayerScore>();
             }
             Monitor.Exit(useLock);
             return players;
+        }
+
+
+        public static List<PlayerScore> GetScoresInstance()
+        {
+            Monitor.Enter(useLock);
+            if (scores == null)
+            {
+                scores = new List<PlayerScore>();
+                match = 0;
+            }
+            Monitor.Exit(useLock);
+            return scores;
         }
 
         public static List<Player> GetLoggedPlayers()
@@ -45,6 +57,19 @@ namespace GameServer
             }
             Monitor.Exit(useLock);
             return loggedPlayers;
+        }
+
+
+        public static List<PlayerScore> GetPlayers()
+        {
+            Monitor.Enter(useLock);
+            List<PlayerScore> playerScores = new List<PlayerScore>();
+            foreach (PlayerScore player in GetScoresInstance())
+            {
+                playerScores.Add(player);
+            }
+            Monitor.Exit(useLock);
+            return playerScores;
         }
 
 
@@ -107,9 +132,10 @@ namespace GameServer
                 Survived = win,
                 Score = character.player.Score,
                 Role = role,
-                Date = DateTime.Now
+                Date = DateTime.Now,
+                Match = match
             };
-            scores.Add(score);
+            GetScoresInstance().Add(score);
         }
 
         private static string GetRole(int attack)
@@ -121,6 +147,17 @@ namespace GameServer
             else{
                 return "SURVIVOR";
             }
+        }
+
+        public static void NextMatch()
+        {
+            Monitor.Enter(useLock);
+            if (match==null)
+            {
+                match = 0;
+            }
+            match++;
+            Monitor.Exit(useLock);
         }
     }
 }

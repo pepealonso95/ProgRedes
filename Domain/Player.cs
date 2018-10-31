@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 namespace Domain
 {
     [DataContract]
+    [Serializable]
     public class Player
     {
         [DataMember]

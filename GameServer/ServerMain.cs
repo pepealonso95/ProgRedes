@@ -8,6 +8,11 @@ using System.Text;
 using System.Threading;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
+using System.Collections;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Serialization.Formatters;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting;
 
 namespace GameServer
 {
@@ -23,6 +28,7 @@ namespace GameServer
         {
             IPEndPoint ipthis = new IPEndPoint(IPAddress.Parse(ConfigurationManager.AppSettings["serverip"]), Int32.Parse(ConfigurationManager.AppSettings["serverport"]));
             server = new TcpListener(ipthis);
+            CreateRemoting();
             Match.Instance();
             Match.duration = ConfigurationManager.AppSettings["matchduration"];
             clients = new List<TcpClient>();
@@ -60,6 +66,19 @@ namespace GameServer
                     }
                 }
             }
+        }
+
+        private static void CreateRemoting()
+        {
+            IDictionary props = new Hashtable();
+            props["port"] = ConfigurationManager.AppSettings["remotingport"];
+            BinaryServerFormatterSinkProvider serverProvider = new BinaryServerFormatterSinkProvider();
+            serverProvider.TypeFilterLevel = TypeFilterLevel.Full;
+            TcpChannel chan = new TcpChannel(props, null, serverProvider);
+
+            ChannelServices.RegisterChannel(chan, false);
+
+            RemotingConfiguration.RegisterWellKnownServiceType(typeof(PlayerHandler),"PlayerHandler",WellKnownObjectMode.SingleCall);
         }
 
         public static void HandleClient(TcpClient client)

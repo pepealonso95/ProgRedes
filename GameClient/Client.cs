@@ -165,7 +165,7 @@ namespace GameClient
             {
                 try
                 {
-                    var pos = stream.Read(buffer, 0, buffer.Length);
+                    var pos = stream.Read(buffer, recieved, buffer.Length);
                     if (pos == 0)
                     {
                         throw new DisconnectedException("Lost Connection");
