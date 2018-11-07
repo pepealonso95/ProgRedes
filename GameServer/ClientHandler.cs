@@ -182,10 +182,7 @@ namespace GameServer
 
         private void RegisterPlayer(string buffer)
         {
-            if (this.player != null) {
-                ReturnError(CmdResList.INVALID_WHILE_PLAYING);
-                return;
-            }
+            
             int length = Int32.Parse(buffer.Substring(3, 5));
             byte[] data = new byte[length];
             RecieveStream(data);
@@ -235,6 +232,7 @@ namespace GameServer
                 try
                 {
                     var pos = stream.Read(buffer, recieved, buffer.Length);
+                    if (pos == 0)
                     if (pos == 0)
                     {
                         throw new DisconnectedException("Lost Connection");
@@ -390,22 +388,23 @@ namespace GameServer
 
         private void MoveCharacter(string buffer)
         {
-            if (player == null)
-            {
-                ReturnError(CmdResList.NOTLOGGED);
-                return;
-            }
-            else if (match.Finished)
-            {
-                ReturnError(CmdResList.MATCHFINISHED);
-                return;
-            }
-            else
-            {
                 int length = Int32.Parse(buffer.Substring(3, 5));
                 byte[] data = new byte[length];
                 RecieveStream(data);
                 string directions = Encoding.UTF8.GetString(data);
+                if (player == null)
+                {
+                    ReturnError(CmdResList.NOTLOGGED);
+                    return;
+                }
+                else if (match.Finished)
+                {
+                    ReturnError(CmdResList.MATCHFINISHED);
+                    return;
+            }
+
+            else
+            {
                 string addResult = match.Move(player,directions);
                 if (addResult == CmdResList.NOTINMATCH)
                 {

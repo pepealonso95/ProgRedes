@@ -13,23 +13,20 @@ using Domain;
 using System.Collections;
 using System.Runtime.Serialization.Formatters;
 using System.Configuration;
+using System.ServiceModel;
+using System.ServiceModel.Description;
 
-namespace ServerAdmin
+namespace ServerAdministrator
 {
     public class ServerAdminMain
     {
-        private static Stack<LogEntry> entries;
-        private static List<PlayerScore> players = new List<PlayerScore>();
+        private static IRemoteAdmin remoteAdmin;
         public static void Main(string[] args)
         {
-            CrearInfrastructuraRemoting();
 
             Console.WriteLine("Obtener referencia al server.");
-            IPlayerHandler playerHandler = (IPlayerHandler)Activator.GetObject(
-                                                    typeof(IPlayerHandler),
-                                                    "tcp://" + ConfigurationManager.AppSettings["serverip"] + ":" + ConfigurationManager.AppSettings["remotingport"] + "/PlayerHandler");
-            
-            entries = new Stack<LogEntry>();
+            remoteAdmin = new RemoteAdmin();
+            StartWCF();
             bool exit = false;
             PrintAllCommands();
             while (!exit)
@@ -38,49 +35,96 @@ namespace ServerAdmin
                 string cmd = Console.ReadLine();
                 if (cmd.Equals("log"))
                 {
-                    ReadMessages();
-                    ResendMessages();
+                    ICollection<string> log = remoteAdmin.GetLog();
+                    foreach (string item in log)
+                    {
+                        Console.WriteLine(item);
+                    }
                 }
                 else if (cmd.Equals("ranking"))
                 {
-                    players =  playerHandler.GetPlayers();
-                    PrintRanking();
+                    ICollection<string> ranking = remoteAdmin.GetRanking();
+                    foreach (string item in ranking)
+                    {
+                        Console.WriteLine(item);
+                    }
                 }
                 else if (cmd.Equals("stats"))
                 {
-                    players = playerHandler.GetPlayers();
-                    PrintStatistics();
+                    ICollection<string> stats = remoteAdmin.GetStatistics();
+                    foreach (string item in stats)
+                    {
+                        Console.WriteLine(item);
+                    }
+                }
+                else if (cmd.Equals("add"))
+                {
+                    Console.WriteLine("Enter new players nickname");
+                    string username = Console.ReadLine();
+                    Console.WriteLine(remoteAdmin.AddPlayer(username));
+                }
+                else if (cmd.Equals("modify"))
+                {
+                    Console.WriteLine("Enter old player nickname");
+                    string username = Console.ReadLine();
+                    Console.WriteLine("Enter new player nickname");
+                    string newUsername = Console.ReadLine();
+                    Console.WriteLine(remoteAdmin.ModifyPlayer(username,newUsername));
+                }
+                else if (cmd.Equals("delete"))
+                {
+                    Console.WriteLine("Enter nickname of player to delete");
+                    string username = Console.ReadLine();
+                    Console.WriteLine(remoteAdmin.DeletePlayer(username));
                 }
                 else if (cmd.Equals("exit"))
                 {
                     exit = true;
                 }
+                else
+                {
+                    Console.WriteLine("Invalid command, please try again");
+                }
             }
         }
 
-        private static void PrintStatistics()
-        {
-            List<PlayerScore> scores = players.OrderByDescending(s => s.Match).ToList();
-            if (scores.Count == 0)
-            {
-                Console.WriteLine("No scores");
-                return;
-            }
-            int currentPlayer = 0;
-            int initialMatch = scores[currentPlayer].Match;
-            while (currentPlayer < scores.Count()&&initialMatch -scores[currentPlayer].Match<10)
-            {
-                Console.WriteLine("Player: " + scores[currentPlayer].User + ", Role: " + scores[currentPlayer].Role + ", Match: " + scores[currentPlayer].Match+", Won: " + scores[currentPlayer].Survived);
-                currentPlayer++;
-            }
-        }
 
-        private static void PrintRanking()
+        private static void StartWCF()
         {
-            List<PlayerScore> scores = players.OrderByDescending(s => s.Score).Take(10).ToList();
-            foreach (PlayerScore player in scores)
+            ServiceHost playersServiceHost = null;
+            try
             {
-                Console.WriteLine("Player: "+player.User+", Score: "+player.Score+ ", Role: " + player.Role + ", Date: "+player.Date);
+
+
+                //Base Address for StudentService
+                Uri httpBaseAddress = new Uri("http://"+ ConfigurationManager.AppSettings["currentip"] + ":"+ConfigurationManager.AppSettings["wcfport"]+"/StudentService");
+
+                //Instantiate ServiceHost
+                playersServiceHost = new ServiceHost(
+                    typeof(RemoteAdmin),
+                    httpBaseAddress);
+
+                //Add Endpoint to Host
+                playersServiceHost.AddServiceEndpoint(
+                    typeof(IRemoteAdmin),
+                                                        new WSHttpBinding(), "");
+
+                //Metadata Exchange
+                ServiceMetadataBehavior serviceBehavior =
+                    new ServiceMetadataBehavior();
+                serviceBehavior.HttpGetEnabled = true;
+                playersServiceHost.Description.Behaviors.Add(serviceBehavior);
+
+                //Open
+                playersServiceHost.Open();
+                Console.WriteLine("Service is live now at: {0}", httpBaseAddress);
+                Console.ReadKey();
+            }
+            catch (Exception ex)
+            {
+                playersServiceHost = null;
+                Console.WriteLine("There is an issue with StudentService" + ex.Message);
+                Console.ReadKey();
             }
         }
 
@@ -90,60 +134,12 @@ namespace ServerAdmin
             Console.WriteLine("log");
             Console.WriteLine("ranking");
             Console.WriteLine("stats");
+            Console.WriteLine("add");
+            Console.WriteLine("modify");
+            Console.WriteLine("delete");
             Console.WriteLine("exit");
         }
 
-        private static void ReadMessages()
-        {
-            bool continueToSeekForMessages = true;
 
-            while (continueToSeekForMessages)
-            {
-                try
-                {
-                    var messageQueue = new MessageQueue(@".\private$\matchLog");
-                    messageQueue.Formatter = new BinaryMessageFormatter();
-                        Message message = messageQueue.Receive(new TimeSpan(0,0,10));
-                        LogEntry entry = (LogEntry)message.Body;
-                        entries.Push(entry);
-                        Console.WriteLine(entry.User + " -> " + entry.Action);
-                }
-                catch (Exception ex)
-                {
-                    continueToSeekForMessages = false;
-                    string error = ex.Message;
-                }
-            }
-        }
-
-        private static void ResendMessages()
-        {
-            while (entries.Count>0)
-            {
-                try
-                {
-                    var messageQueue = new MessageQueue(@".\private$\matchLog");
-                    messageQueue.Formatter = new BinaryMessageFormatter();
-
-                    LogEntry entry = entries.Pop();
-                    messageQueue.Send(entry);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-        }
-
-
-        private static void CrearInfrastructuraRemoting()
-        {
-            IDictionary props = new Hashtable();
-            BinaryServerFormatterSinkProvider serverProvider = new BinaryServerFormatterSinkProvider();
-            new TcpChannel(props, null, serverProvider);
-            serverProvider.TypeFilterLevel = TypeFilterLevel.Full;
-            TcpChannel chan = new TcpChannel(props, null, serverProvider);
-            ChannelServices.RegisterChannel(chan, false);
-        }
     }
 }

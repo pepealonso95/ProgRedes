@@ -8,7 +8,7 @@ namespace Domain
     public class Player
     {
         [DataMember]
-        public string Nickname { get; }
+        public string Nickname { get; set; }
 
         [DataMember]
         public byte[] Image { get; set; }

@@ -14,5 +14,42 @@ namespace GameServer
         {
             return PlayerList.GetPlayers();
         }
+
+
+        public string AddPlayer(string username)
+        {
+            Player player = new Player(username);
+            if (PlayerList.PlayerRegister(player))
+            {
+                return "Added Succesfully";
+            }
+            else
+            {
+                return "Already Exists";
+            }
+        }
+        public string ModifyPlayer(string oldUsername, string newUsername)
+        {
+            if (PlayerList.ModifyPlayer(oldUsername, newUsername))
+            {
+                return "Modified Succesfully";
+            }
+            else
+            {
+                return "Player doesnt exist";
+            }
+        }
+        public string DeletePlayer(string username)
+        {
+            Player player = new Player(username);
+            if (PlayerList.RemovePlayer(player))
+            {
+                return "Removed Succesfully";
+            }
+            else
+            {
+                return "Player doesnt exist";
+            }
+        }
     }
 }

@@ -159,5 +159,30 @@ namespace GameServer
             match++;
             Monitor.Exit(useLock);
         }
+
+
+        public static bool ModifyPlayer(string oldUsername, string newUsername)
+        {
+            bool result = false;
+            Monitor.Enter(useLock);
+            Player found = GetInstance().Find(p => p.Nickname == oldUsername);
+            if (found != null)
+            {
+                result = true;
+                found.Nickname = newUsername;
+            }
+            Monitor.Exit(useLock);
+            return result;
+        }
+
+
+        public static bool RemovePlayer(Player player)
+        {
+            bool result = false;
+            Monitor.Enter(useLock);
+            result = GetInstance().Remove(player);
+            Monitor.Exit(useLock);
+            return result;
+        }
     }
 }

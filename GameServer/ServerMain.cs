@@ -68,6 +68,8 @@ namespace GameServer
             }
         }
 
+      
+
         private static void CreateRemoting()
         {
             IDictionary props = new Hashtable();
