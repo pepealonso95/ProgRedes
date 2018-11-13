@@ -48,6 +48,7 @@ namespace ServerAdministrator
 
         public ICollection<string> GetStatistics()
         {
+            players = playerHandler.GetPlayers();
             ICollection<string> statistics = new List<string>();
             List<PlayerScore> scores = players.OrderByDescending(s => s.Match).ToList();
             if (scores.Count == 0)
@@ -77,6 +78,24 @@ namespace ServerAdministrator
             }
             return ranking;
         }
+        /*
+        private ICollection<PlayerScore> AddUpScores(ICollection<PlayerScore> scores)
+        {
+            List<PlayerScore> ranking = new List<PlayerScore>();
+            foreach (PlayerScore score in scores)
+            {
+                PlayerScore found = ranking.FirstOrDefault(p => p.User.Equals(score.User));
+                if (found == null)
+                {
+                    ranking.Add(score);
+                }
+                else
+                {
+                    found.Score += score.Score;
+                }
+            }
+            return ranking;
+        }*/
 
         public ICollection<string> GetLog()
         {
@@ -103,7 +122,7 @@ namespace ServerAdministrator
                 catch (Exception ex)
                 {
                     continueToSeekForMessages = false;
-                    log.Add(ex.Message);
+                    log.Add("Fin del log");
                 }
             }
             return log;

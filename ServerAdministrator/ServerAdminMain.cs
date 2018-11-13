@@ -75,6 +75,7 @@ namespace ServerAdministrator
                 {
                     Console.WriteLine("Enter nickname of player to delete");
                     string username = Console.ReadLine();
+
                     Console.WriteLine(remoteAdmin.DeletePlayer(username));
                 }
                 else if (cmd.Equals("exit"))
@@ -96,8 +97,8 @@ namespace ServerAdministrator
             {
 
 
-                //Base Address for StudentService
-                Uri httpBaseAddress = new Uri("http://"+ ConfigurationManager.AppSettings["currentip"] + ":"+ConfigurationManager.AppSettings["wcfport"]+"/StudentService");
+                //Base Address for GameService
+                Uri httpBaseAddress = new Uri("http://"+ ConfigurationManager.AppSettings["currentip"] + ":"+ConfigurationManager.AppSettings["wcfport"]+"/GameService");
 
                 //Instantiate ServiceHost
                 playersServiceHost = new ServiceHost(
@@ -118,12 +119,11 @@ namespace ServerAdministrator
                 //Open
                 playersServiceHost.Open();
                 Console.WriteLine("Service is live now at: {0}", httpBaseAddress);
-                Console.ReadKey();
             }
             catch (Exception ex)
             {
                 playersServiceHost = null;
-                Console.WriteLine("There is an issue with StudentService" + ex.Message);
+                Console.WriteLine("There is an issue with GameService" + ex.Message);
                 Console.ReadKey();
             }
         }

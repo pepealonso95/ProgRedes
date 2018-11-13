@@ -48,7 +48,7 @@ namespace GameServer
             }
             else
             {
-                return "Player doesnt exist";
+                return "Player doesnt exist or is logged in";
             }
         }
     }

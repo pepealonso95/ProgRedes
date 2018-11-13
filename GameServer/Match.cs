@@ -50,6 +50,7 @@ namespace GameServer
             playerCount = 0;
             DeadPlayers = new List<Character>();
             Playing  = new List<PlayerPosition>();
+            logger.CleanLog();
             LogEntry log = new LogEntry()
             {
                 User = "START",
@@ -488,12 +489,42 @@ namespace GameServer
                     {
                         character.TakeDamage(myCharacter.GetAttack());
                         response += " Survivor";
+
+                        LogEntry log = new LogEntry()
+                        {
+                            User = myCharacter.player.Nickname,
+                            Action = "Attacked"
+                        };
+                        logger.LogNewEntry(log);
+
+
+                        log = new LogEntry()
+                        {
+                            User = character.player.Nickname,
+                            Action = "Was Attacked"
+                        };
+                        logger.LogNewEntry(log);
                     }
                 }
                 else if (character.GetAttack() == RoleValues.MONSTER_ATTACK)
                 {
                     character.TakeDamage(myCharacter.GetAttack());
                     response += " Monster";
+
+                    LogEntry log = new LogEntry()
+                    {
+                        User = myCharacter.player.Nickname,
+                        Action = "Attacked"
+                    };
+                    logger.LogNewEntry(log);
+
+
+                    log = new LogEntry()
+                    {
+                        User = character.player.Nickname,
+                        Action = "Was Attacked"
+                    };
+                    logger.LogNewEntry(log);
                 }
                 if (!character.IsAlive())
                 {
@@ -531,6 +562,12 @@ namespace GameServer
                     DeadPlayers.Add(Terrain[playerToKill.x, playerToKill.y]);
                     Terrain[playerToKill.x, playerToKill.y] = new EmptyPos();
                     response = "Killed (" + player.Nickname + ")";
+                    LogEntry log = new LogEntry()
+                    {
+                        User = player.Nickname,
+                        Action = "Was Killed"
+                    };
+                    logger.LogNewEntry(log);
                 }
                 return response;
             }

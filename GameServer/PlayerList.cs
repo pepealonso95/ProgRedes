@@ -38,7 +38,6 @@ namespace GameServer
             if (scores == null)
             {
                 scores = new List<PlayerScore>();
-                match = 0;
             }
             Monitor.Exit(useLock);
             return scores;
@@ -152,10 +151,6 @@ namespace GameServer
         public static void NextMatch()
         {
             Monitor.Enter(useLock);
-            if (match==null)
-            {
-                match = 0;
-            }
             match++;
             Monitor.Exit(useLock);
         }
@@ -180,7 +175,11 @@ namespace GameServer
         {
             bool result = false;
             Monitor.Enter(useLock);
-            result = GetInstance().Remove(player);
+            Player realPlayer = GetInstance().FirstOrDefault(p => p.Nickname == player.Nickname);
+            if (realPlayer!=null&&!realPlayer.IsLogged())
+            {
+                result = GetInstance().Remove(player);
+            }
             Monitor.Exit(useLock);
             return result;
         }
